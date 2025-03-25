@@ -44,8 +44,7 @@ class UserDetailsView(APIView):
             'user': {
                 'email': user.email,
                 'username': user.username,
-                # Add any additional fields from your User model
-                'avatar_url': user.profile.avatar.url if hasattr(user, 'profile') else None
+                'has_profile': hasattr(user, 'profile')
             }
         }
         return Response(data, status=status.HTTP_200_OK)

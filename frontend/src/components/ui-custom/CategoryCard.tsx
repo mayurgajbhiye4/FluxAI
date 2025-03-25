@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CategoryCardProps {
   title: string;
@@ -27,6 +28,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   index,
 }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   
   return (
@@ -39,7 +41,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     >
       <Card 
         className="overflow-hidden h-full cursor-pointer transition-all hover:shadow-md" 
-        onClick={() => navigate('/signin')}
+        onClick={() => navigate(user ? '/route' : '/signin')}
         style={{
           borderTop: `3px solid ${color}`,
         }}

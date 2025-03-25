@@ -28,13 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8083",
-    "http://192.168.0.156:8083",
-]
-
-CORS_ALLOW_CREDENTIALS = True
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -154,8 +147,17 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, '../frontend/dist')]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8083",
+    "http://192.168.0.156:8083",
+]
+
+SESSION_COOKIE_AGE = 1209600
+
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+SESSION_COOKIE_HTTPONLY = True
 
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False

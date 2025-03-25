@@ -45,14 +45,16 @@ const Categories = [
   }
 ];
 
-const Index = () => {
+const Index = () => { 
   const { getCompletedTasksCount, getTotalTasksCount } = useTaskContext();
   const [mounted, setMounted] = useState(false);
 
-  const { user } = useAuth(); // Get authentication state
+  const { user, loading } = useAuth(); // Get authentication state
   const navigate = useNavigate();
 
   const handleCategoryClick = (route: string) => {
+    if (loading) return;
+
     if (!user) {
       navigate('/signin', { state: { from: route } });
       return;
@@ -63,6 +65,7 @@ const Index = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
   
   // Animation variants
   const containerVariants = {
