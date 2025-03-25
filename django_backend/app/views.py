@@ -71,7 +71,7 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
         
-        user = authenticate(request, user=user.username, password=password)
+        user = authenticate(request, username=email, password=password)
 
         if user is None:
             return Response(

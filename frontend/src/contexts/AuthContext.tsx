@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await fetchWithCSRF('/api/login/', {
         method: 'POST',
-        body: JSON.stringify({ email: email.trim(), password: password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password: password }),
       });
 
       if (!response.ok) {
