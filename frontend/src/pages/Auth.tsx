@@ -84,7 +84,7 @@ const Auth = () => {
   const handleSignupSubmit = async (values: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     try {   
-      await signUp(values.email, values.username, values.password);
+      await signUp(values.email, values.username, values.password, values.confirmPassword);
     } catch(error){
         if (error instanceof Error){
             const message = error.message.toLowerCase();

@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from .models import CustomUser
-from .serializers import UserSerializer
+from .serializers import UserSerializer, LoginSerializer
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
@@ -16,7 +16,7 @@ def home(request):
     return render(request, "index.html")
 
 @require_GET
-def csrf_token_view(request):
+def csrf_token(request):
     # Generate a new CSRF token (this also sets it in the request session)
     csrf_token = get_token(request)
     # Create the response and explicitly set the CSRF cookie
@@ -52,19 +52,37 @@ class UserDetailsView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         email = serializer.validated_data.get('email')
         password = serializer.validated_data.get('password')
+
+        # First check if user exists
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response(
+                {'error': 'No account found with this email'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         
-        user = authenticate(request, username=email, password=password)
+        user = authenticate(request, user=user.username, password=password)
+
         if user is None:
             return Response(
                 {'error': 'Invalid credentials'},
                 status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        if not user.is_active:
+            return Response(
+                {'error': 'Account is not active'},
+                status=status.HTTP_403_FORBIDDEN
             )
 
         login(request, user)
@@ -78,19 +96,12 @@ class LoginView(APIView):
     
 
 class SignupView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        password = serializer.validated_data.get('password')
-        confirm_password = serializer.validated_data.get('confirm_password')
-
-        if password != confirm_password:
-            return Response(
-                {'error': 'Passwords do not match'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         if CustomUser.objects.filter(email=serializer.validated_data['email']).exists():
             return Response(
@@ -107,7 +118,7 @@ class SignupView(APIView):
         user = CustomUser.objects.create_user(
             email=serializer.validated_data['email'],
             username=serializer.validated_data['username'],
-            password=password
+            password=serializer.validated_data['password']
         )
 
         return Response({

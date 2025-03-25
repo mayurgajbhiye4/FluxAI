@@ -29,8 +29,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8081",
-    "http://192.168.0.156:8081",
+    "http://localhost:8083",
+    "http://192.168.0.156:8083",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

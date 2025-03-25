@@ -11,7 +11,7 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, username: string, password: string) => Promise<void>;
+  signUp: (email: string, username: string, password: string, confirm_password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await fetchWithCSRF('/api/login/', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password: password }),
       });
 
       if (!response.ok) {
@@ -94,12 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
   };
 
-  const signUp = async (email: string, username: string, password: string) => {
+  const signUp = async (email: string, username: string, password: string, confirm_password: string) => {
     setLoading(true);
     try {
       const response = await fetchWithCSRF('/api/signup/', {
         method: 'POST',
-        body: JSON.stringify({ email, username, password }),
+        body: JSON.stringify({ email, username, password, confirm_password }),
       });
 
       if (!response.ok) {
