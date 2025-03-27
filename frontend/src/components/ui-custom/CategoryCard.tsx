@@ -26,11 +26,10 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   completedTasks,
   totalTasks,
   index,
+  onClick
 }) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -41,7 +40,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     >
       <Card 
         className="overflow-hidden h-full cursor-pointer transition-all hover:shadow-md" 
-        onClick={() => navigate(user ? '/route' : '/signin')}
+        onClick={onClick}
         style={{
           borderTop: `3px solid ${color}`,
         }}

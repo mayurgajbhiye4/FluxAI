@@ -87,7 +87,16 @@ const Index = () => {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted || loading) {
+  return (
+    <PageTransition>
+      <div className="max-w-7xl mx-auto px-4 pt-24 pb-16 flex justify-center">
+        {/* Add your loading spinner component here */}
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    </PageTransition>
+  );
+}
 
   return (
     <PageTransition>

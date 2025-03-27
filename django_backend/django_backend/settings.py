@@ -148,8 +148,8 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, '../frontend/dist')]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8083",
-    "http://192.168.0.156:8083",
+    "http://localhost:8084",
+    "http://192.168.0.156:8084",
 ]
 
 SESSION_COOKIE_AGE = 1209600
