@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets, permissions 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
-from .models import CustomUser
-from .serializers import UserSerializer, LoginSerializer
+from .models import CustomUser,Task, Goal
+from .serializers import UserSerializer, LoginSerializer, GoalSerializer, TaskSerializer
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
@@ -141,3 +141,27 @@ class LogoutView(APIView):
             {'detail': 'Successfully logged out.'},
             status=status.HTTP_200_OK
         )
+    
+
+class TaskViewSet(viewsets.ModelViewSet):
+    serializer_class = TaskSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Task.objects.none()
+
+    def get_queryset(self):
+        return Task.objects.filter(user=self.request.user).select_related('user')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class GoalViewSet(viewsets.ModelViewSet):
+    serializer_class = GoalSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Goal.objects.none()
+
+    def get_queryset(self):
+        return Goal.objects.filter(user=self.request.user).select_related('user')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

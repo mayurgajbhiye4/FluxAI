@@ -8,8 +8,16 @@ interface Summary {
   id: string;
   title: string;
   content: string;
-  createdAt: Date;
+  created_at: Date;
 }
+
+const getCsrfToken = () => {
+  // Try to get the CSRF token from cookies
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith('csrftoken='))
+    ?.split('=')[1];
+};
 
 interface TaskContextType {
   tasks: Task[];
@@ -68,56 +76,228 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('studytrack-summaries', JSON.stringify(summaries));
   }, [summaries]);
 
-  const addTask = (title: string, category: Task['category']) => {
+  const addTask = async (title: string, category: Task['category']) => {
     const newTask: Task = {
       id: uuidv4(),
       title,
       completed: false,
       category,
-      createdAt: new Date(),
+      created_at: new Date(),
+      description: '',
+      updated_at: new Date(),
+	    due_date: null,
+	    priority: 1,
+	    tags: [],
+	    progress: 0
     };
+
+    try{
+      setTasks(prev => [newTask, ...prev]);
+
+      const response = await fetch('/api/tasks/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify({
+        title: title,
+        category: category,
+        description: '',
+        priority: 1,
+        tags: [],
+        progress: 0
+      }),
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save task to the server');
+    }
     
-    setTasks(prev => [newTask, ...prev]);
+    const savedTask = await response.json();
+
+    // Update the local task with the server-generated ID and timestamps
+    setTasks(prev => 
+      prev.map(task => 
+        task.id === newTask.id ? { ...task, id: savedTask.id } : task
+      )
+    );
+    
     toast({
       title: 'Task added',
       description: `"${title}" has been added to your tasks.`,
     });
-  };
 
-  const toggleTask = (id: string) => {
+  } catch (error) {
+    // Remove the task from state if the API call fails
+    setTasks(prev => prev.filter(task => task.id !== newTask.id));
+    
+    toast({
+      title: 'Error',
+      description: `Failed to save task: ${error.message}`,
+      variant: 'destructive'
+    });
+  }
+};
+    
+  
+const toggleTask = async (id: string) => {
+  // Find the task that is being toggled
+  const taskToToggle = tasks.find(task => task.id === id);
+  
+  if (!taskToToggle) return;
+  
+  // Create the new state
+  const newCompleted = !taskToToggle.completed;
+  
+  // Update local state immediately for responsive UI
+  setTasks(prev => 
+    prev.map(task => 
+      task.id === id ? { ...task, completed: newCompleted } : task
+    )
+  );
+  
+  try {
+    // Make API call to update the task in the backend
+    const response = await fetch(`/api/tasks/${id}/`, {
+      method: 'PATCH', // or 'PUT' if your API requires the full resource
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(), // Make sure you have this function available
+      },
+      body: JSON.stringify({
+        completed: newCompleted
+      }),
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update task on the server');
+    }
+    
+    const updatedTask = await response.json();
+    
+  } catch (error) {
+    // Revert the local state change if the API call fails
     setTasks(prev => 
       prev.map(task => 
-        task.id === id ? { ...task, completed: !task.completed } : task
+        task.id === id ? { ...task, completed: taskToToggle.completed } : task
       )
     );
-  };
+    
+    toast({
+      title: 'Error',
+      description: `Failed to update task: ${error.message}`,
+      variant: 'destructive'
+    });
+  }
+};
 
-  const editTask = (id: string, newTitle: string) => {
-    setTasks(prev => 
-      prev.map(task => 
-        task.id === id ? { ...task, title: newTitle } : task
-      )
-    );
+const editTask = async (id: string, newTitle: string) => {
+  // Find the original task
+  const originalTask = tasks.find(task => task.id === id);
+  
+  if (!originalTask) return;
+  
+  // Store the original title in case we need to revert
+  const originalTitle = originalTask.title;
+  
+  // Update local state immediately for better UX
+  setTasks(prev => 
+    prev.map(task => 
+      task.id === id ? { ...task, title: newTitle } : task
+    )
+  );
+  
+  try {
+    // Send the update to the backend
+    const response = await fetch(`/api/tasks/${id}/`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify({
+        title: newTitle,
+        updated_at: new Date()
+      }),
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update task on the server');
+    }
+    
+    // Show success toast
     toast({
       title: 'Task updated',
       description: 'Your task has been updated successfully.',
     });
-  };
+    
+  } catch (error) {
+    // Revert the local change if the API call fails
+    setTasks(prev => 
+      prev.map(task => 
+        task.id === id ? { ...task, title: originalTitle } : task
+      )
+    );
+    
+    toast({
+      title: 'Error',
+      description: `Failed to update task: ${error.message}`,
+      variant: 'destructive'
+    });
+  }
+};
 
-  const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
+const deleteTask = async (id: string) => {
+  // Find the task being deleted
+  const taskToDelete = tasks.find(task => task.id === id);
+  
+  if (!taskToDelete) return;
+  
+  // Remove from local state immediately for responsive UI
+  setTasks(prev => prev.filter(task => task.id !== id));
+  
+  try {
+    // Send the delete request to the backend
+    const response = await fetch(`/api/tasks/${id}/`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRFToken': getCsrfToken(),
+      },
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to delete task on the server');
+    }
+    
+    // Show success toast
     toast({
       title: 'Task deleted',
       description: 'Your task has been deleted successfully.',
     });
-  };
+    
+  } catch (error) {
+    // Restore the task in local state if the API call fails
+    setTasks(prev => [taskToDelete, ...prev]);
+    
+    toast({
+      title: 'Error',
+      description: `Failed to delete task: ${error.message}`,
+      variant: 'destructive'
+    });
+  }
+};
 
   const addSummary = (title: string, content: string) => {
     const newSummary: Summary = {
       id: uuidv4(),
       title,
       content,
-      createdAt: new Date(),
+      created_at: new Date(),
     };
     
     setSummaries(prev => [newSummary, ...prev]);
@@ -150,7 +330,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Simulate a weekly streak - in a real app, this would be calculated based on completed tasks per day
   const getWeeklyStreak = (category: Task['category']) => {
     // For demo purposes, return a random number between 1 and 7
-    const categoryIndex = ['dsa', 'development', 'systemDesign', 'jobSearch'].indexOf(category);
+    const categoryIndex = ['dsa', 'development', 'system_design', 'job_search'].indexOf(category);
     return Math.min(categoryIndex + 3, 7);
   };
 

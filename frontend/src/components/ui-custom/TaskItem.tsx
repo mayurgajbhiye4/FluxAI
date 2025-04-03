@@ -10,8 +10,14 @@ export interface Task {
   id: string;
   title: string;
   completed: boolean;
-  category: 'dsa' | 'development' | 'systemDesign' | 'jobSearch';
-  createdAt: Date;
+  category: 'dsa' | 'development' | 'system_design' | 'job_search';
+  description: string;
+  created_at: Date;
+  updated_at: Date;
+  due_date: Date;
+  priority: Number;
+  tags: any[];
+  progress: Number;
 }
 
 interface TaskItemProps {
@@ -35,8 +41,8 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete })
   const categoryColors = {
     dsa: 'border-category-dsa bg-category-dsa/5',
     development: 'border-category-development bg-category-development/5',
-    systemDesign: 'border-category-systemDesign bg-category-systemDesign/5',
-    jobSearch: 'border-category-jobSearch bg-category-jobSearch/5',
+    system_design: 'border-category-system_design bg-category-system_design/5',
+    job_search: 'border-category-job_search bg-category-job_search/5',
   };
 
   return (

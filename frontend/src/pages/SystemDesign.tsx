@@ -28,14 +28,14 @@ const SystemDesign = () => {
   
   const [newTask, setNewTask] = useState('');
   
-  const systemDesignTasks = getTasksByCategory('systemDesign');
+  const systemDesignTasks = getTasksByCategory('system_design');
   const completedTasks = systemDesignTasks.filter(task => task.completed);
   const incompleteTasks = systemDesignTasks.filter(task => !task.completed);
   
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTask.trim()) {
-      addTask(newTask, 'systemDesign');
+      addTask(newTask, 'system_design');
       setNewTask('');
     }
   };
@@ -160,8 +160,8 @@ const SystemDesign = () => {
               categoryName="System Design"
               color="#8B5CF6"
               dailyGoal={2}
-              completed={getCompletedTasksCount('systemDesign')}
-              weeklyStreak={getWeeklyStreak('systemDesign')}
+              completed={getCompletedTasksCount('system_design')}
+              weeklyStreak={getWeeklyStreak('system_design')}
             />
             
             <Card className="mt-6">

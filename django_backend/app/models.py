@@ -40,3 +40,44 @@ class CustomUser(AbstractUser):
 class Profile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
  
+
+class Category(models.TextChoices):
+    DSA = 'dsa', _('Data Structures & Algorithms')
+    DEVELOPMENT = 'development', _('Development')
+    SYSTEM_DESIGN = 'system_design', _('System Design')
+    JOB_SEARCH = 'job_search', _('Job Search')
+
+
+class Task(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='tasks')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=20, choices=Category.choices)
+    completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    due_date = models.DateField(null=True, blank=True)
+    priority = models.PositiveSmallIntegerField(default=1)  # 1-5 scale
+    tags = models.JSONField(default=list, blank=True)
+    progress = models.PositiveSmallIntegerField(default=0)  # 0-100 percentage
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['category']),
+            models.Index(fields=['completed']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} ({self.get_category_display()})"
+    
+
+class Goal(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='goals')
+    category = models.CharField(max_length=20, choices=Category.choices, unique=True)
+    daily_target = models.PositiveIntegerField(default=3)
+    weekly_streak = models.PositiveIntegerField(default=0)
+    last_updated = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.get_category_display()} Goals"

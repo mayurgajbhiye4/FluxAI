@@ -81,7 +81,7 @@ const Assistant = () => {
                             <div>
                               <h3 className="text-sm font-medium">{summary.title}</h3>
                               <p className="text-xs text-muted-foreground mt-1">
-                                {formatDate(summary.createdAt)}
+                                {formatDate(summary.created_at)}
                               </p>
                             </div>
                             <Button
@@ -129,7 +129,7 @@ const Assistant = () => {
                       {summaries.find(s => s.id === selectedSummary)?.title}
                     </CardTitle>
                     <CardDescription>
-                      {formatDate(summaries.find(s => s.id === selectedSummary)?.createdAt || new Date())}
+                      {formatDate(summaries.find(s => s.id === selectedSummary)?.created_at || new Date())}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

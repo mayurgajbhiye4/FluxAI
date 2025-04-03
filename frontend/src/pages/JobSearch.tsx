@@ -28,14 +28,14 @@ const JobSearch = () => {
   
   const [newTask, setNewTask] = useState('');
   
-  const jobSearchTasks = getTasksByCategory('jobSearch');
+  const jobSearchTasks = getTasksByCategory('job_search');
   const completedTasks = jobSearchTasks.filter(task => task.completed);
   const incompleteTasks = jobSearchTasks.filter(task => !task.completed);
   
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTask.trim()) {
-      addTask(newTask, 'jobSearch');
+      addTask(newTask, 'job_search');
       setNewTask('');
     }
   };
@@ -160,8 +160,8 @@ const JobSearch = () => {
               categoryName="Job Search"
               color="#F59E0B"
               dailyGoal={4}
-              completed={getCompletedTasksCount('jobSearch')}
-              weeklyStreak={getWeeklyStreak('jobSearch')}
+              completed={getCompletedTasksCount('job_search')}
+              weeklyStreak={getWeeklyStreak('job_search')}
             />
             
             <Card className="mt-6">
