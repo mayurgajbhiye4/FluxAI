@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Bot, FileText, Trash2 } from 'lucide-react';

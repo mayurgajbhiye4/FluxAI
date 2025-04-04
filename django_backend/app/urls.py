@@ -1,11 +1,14 @@
 from django.urls import path, re_path, include
 from django.views.generic import TemplateView
 from .views import home, csrf_token, UserDetailsView, LoginView, SignupView, LogoutView
+from . import views
 
 urlpatterns = [
     path('', home, name='home'),
 
     path('api/me/', UserDetailsView.as_view(), name='user-details'),
+
+    path('api/current-user/', views.current_user, name='current-user'),
 
     path('api/csrf_token/', csrf_token, name='csrf_token'),
 

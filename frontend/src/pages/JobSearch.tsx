@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Briefcase, ListChecks, GraduationCap, Plus } from 'lucide-react';

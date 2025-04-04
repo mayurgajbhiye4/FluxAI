@@ -44,7 +44,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         style={{
           borderTop: `3px solid ${color}`,
         }}
-      >
+      > 
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
             <Badge variant="outline" className="px-2 py-0.5 mb-2" style={{ color, borderColor: color, backgroundColor: `${color}10` }}>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,9 +24,10 @@ interface TaskItemProps {
   onToggle: (id: string) => void;
   onEdit: (id: string, newTitle: string) => void;
   onDelete: (id: string) => void;
+  isLoading?: boolean;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete }) => {
+const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete, isLoading = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   
@@ -56,6 +56,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete })
         "group border p-3 rounded-lg mb-2 flex items-center justify-between transition-all",
         task.completed ? "bg-muted/50" : "bg-card hover:bg-accent/50",
         categoryColors[task.category],
+        isLoading && "opacity-50 pointer-events-none"
       )}
     >
       <div className="flex items-center gap-3 flex-1">
@@ -63,6 +64,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete })
           checked={task.completed} 
           onCheckedChange={() => onToggle(task.id)}
           className="transition-all data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground h-5 w-5"
+          disabled={isLoading}
         />
         
         {isEditing ? (
@@ -76,6 +78,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete })
             className="flex-1 bg-background border px-2 py-1 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             autoFocus
             onKeyDown={(e) => e.key === 'Enter' && handleEditSubmit()}
+            disabled={isLoading}
           />
         ) : (
           <span className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
@@ -92,10 +95,10 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete })
             exit={{ opacity: 0 }}
             className="flex space-x-1"
           >
-            <Button variant="ghost" size="icon" onClick={handleEditSubmit} className="h-7 w-7">
+            <Button variant="ghost" size="icon" onClick={handleEditSubmit} className="h-7 w-7" disabled={isLoading}>
               <Check className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="h-7 w-7">
+            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="h-7 w-7" disabled={isLoading}>
               <X className="h-4 w-4" />
             </Button>
           </motion.div>
@@ -106,10 +109,10 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete })
             exit={{ opacity: 0 }}
             className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity"
           >
-            <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} className="h-7 w-7">
+            <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} className="h-7 w-7" disabled={isLoading}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => onDelete(task.id)} className="h-7 w-7 text-destructive hover:text-destructive">
+            <Button variant="ghost" size="icon" onClick={() => onDelete(task.id)} className="h-7 w-7 text-destructive hover:text-destructive" disabled={isLoading}>
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </motion.div>
