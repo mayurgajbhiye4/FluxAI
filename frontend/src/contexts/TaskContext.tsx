@@ -2,17 +2,13 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Task } from '@/components/ui-custom/TaskItem';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Summary {
   id: string;
   title: string;
   content: string;
   created_at: Date;
-}
-
-interface User {
-  id: string;
-  username: string;
 }
 
 const getCsrfToken = () => {
@@ -26,7 +22,6 @@ const getCsrfToken = () => {
 interface TaskContextType {
   tasks: Task[];
   summaries: Summary[];
-  currentUser: User | null;
   loading: boolean;
   addTask: (title: string, category: Task['category']) => void;
   toggleTask: (id: string) => void;
@@ -55,58 +50,42 @@ export const useTaskContext = () => {
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [summaries, setSummaries] = useState<Summary[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch current user info
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const response = await fetch('/api/current-user/', {
-          credentials: 'include'
-        });
+  const loadUserData = async () => {
+    try {
+      if (user) {
+        const userKey = `studytrack-tasks-${user.id}`;
+        const userSummariesKey = `studytrack-summaries-${user.id}`;
         
-        if (response.ok) {
-          const userData = await response.json();
-          setCurrentUser(userData);
-          
-          // Now load user-specific data from localStorage if available
-          if (userData && userData.id) {
-            const userKey = `studytrack-tasks-${userData.id}`;
-            const userSummariesKey = `studytrack-summaries-${userData.id}`;
-            
-            const savedTasks = localStorage.getItem(userKey);
-            if (savedTasks) {
-              setTasks(JSON.parse(savedTasks).map((task: any) => ({
-                ...task,
-                created_at: new Date(task.created_at),
-                updated_at: new Date(task.updated_at),
-                due_date: task.due_date ? new Date(task.due_date) : null
-              })));
-            }
-            
-            const savedSummaries = localStorage.getItem(userSummariesKey);
-            if (savedSummaries) {
-              setSummaries(JSON.parse(savedSummaries).map((summary: any) => ({
-                ...summary,
-                created_at: new Date(summary.created_at)
-              })));
-            }
-          }
-        } else {
-          console.error('Failed to fetch current user');
+        // Load from localStorage
+        const savedTasks = localStorage.getItem(userKey);
+        if (savedTasks) {
+          setTasks(JSON.parse(savedTasks).map(/* ... */));
         }
-      } catch (error) {
-        console.error('Error fetching current user:', error);
-      } finally {
-        // Regardless of outcome, we'll fetch tasks next
-        fetchTasks();
+
+        const savedSummaries = localStorage.getItem(userSummariesKey);
+        if (savedSummaries) {
+          setSummaries(JSON.parse(savedSummaries).map(/* ... */));
+        }
+
+        // Fetch tasks from backend
+        await fetchTasks();
+      } else {
+        setTasks([]);
+        setSummaries([]);
       }
-    };
-    
-    fetchCurrentUser();
-  }, []);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
+  loadUserData();
+}, [user]); // Runs when user changes
 
   // Fetch tasks from backend API
   const fetchTasks = async () => {
@@ -128,8 +107,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTasks(formattedTasks);
         
         // Save to user-specific localStorage
-        if (currentUser?.id) {
-          localStorage.setItem(`studytrack-tasks-${currentUser.id}`, JSON.stringify(formattedTasks));
+        if (user?.id) {
+          localStorage.setItem(`studytrack-tasks-${user.id}`, JSON.stringify(formattedTasks));
         }
       } else {
         throw new Error('Failed to fetch tasks');
@@ -148,17 +127,17 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Update localStorage when tasks change
   useEffect(() => {
-    if (currentUser?.id && tasks.length > 0) {
-      localStorage.setItem(`studytrack-tasks-${currentUser.id}`, JSON.stringify(tasks));
+    if (user?.id && tasks.length > 0) { 
+      localStorage.setItem(`studytrack-tasks-${user.id}`, JSON.stringify(tasks));
     }
-  }, [tasks, currentUser]);
+  }, [tasks, user]);
   
   // Update localStorage when summaries change
   useEffect(() => {
-    if (currentUser?.id && summaries.length > 0) {
-      localStorage.setItem(`studytrack-summaries-${currentUser.id}`, JSON.stringify(summaries));
+    if (user?.id && summaries.length > 0) {
+      localStorage.setItem(`studytrack-summaries-${user.id}`, JSON.stringify(summaries));
     }
-  }, [summaries, currentUser]);
+  }, [summaries, user]);
 
 
   const addTask = async (title: string, category: Task['category']) => {
@@ -427,7 +406,6 @@ const deleteTask = async (id: string) => {
   const value = {
     tasks,
     summaries,
-    currentUser,
     loading,
     addTask,
     toggleTask,

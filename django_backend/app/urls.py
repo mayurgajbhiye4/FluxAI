@@ -8,8 +8,6 @@ urlpatterns = [
 
     path('api/me/', UserDetailsView.as_view(), name='user-details'),
 
-    path('api/current-user/', views.current_user, name='current-user'),
-
     path('api/csrf_token/', csrf_token, name='csrf_token'),
 
     path('api/login/', LoginView.as_view(), name='login'),

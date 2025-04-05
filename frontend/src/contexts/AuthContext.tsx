@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 import { useNavigate } from 'react-router-dom';
 
 type User = {
+  id: string;
   email: string;
   username: string;
   avatar_url?: string;

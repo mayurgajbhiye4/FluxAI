@@ -166,13 +166,3 @@ class GoalViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def current_user(request):
-    user = request.user
-    return Response({
-        'id': user.id,
-        'username': user.username,
-    })
