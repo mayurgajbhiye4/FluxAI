@@ -135,11 +135,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Failed to fetch tasks');
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: `Failed to load tasks: ${error.message}`,
-        variant: 'destructive'
-      });
+      throw new Error('Failed to load tasks');
     } finally {
       setLoading(false);
     }
