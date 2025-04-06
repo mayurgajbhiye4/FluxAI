@@ -57,15 +57,6 @@ const SystemDesign = () => {
               Track your system design concepts, architectures, and case studies.
             </p>
           </div>
-          
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button onClick={() => document.getElementById('new-task-input')?.focus()}>
-              <Plus className="mr-1 h-4 w-4" /> Add New Topic
-            </Button>
-          </motion.div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

@@ -7,7 +7,6 @@ import TaskItem from '@/components/ui-custom/TaskItem';
 import GoalProgress from '@/components/ui-custom/GoalProgress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -57,15 +56,6 @@ const DSA = () => {
               Track your DSA practice, LeetCode problems, and study progress.
             </p>
           </div>
-          
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button onClick={() => document.getElementById('new-task-input')?.focus()}>
-              <Plus className="mr-1 h-4 w-4" /> Add New Task
-            </Button>
-          </motion.div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
