@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Server, ListChecks, GraduationCap, Plus } from 'lucide-react';
 import { useTaskContext } from '@/contexts/TaskContext';
@@ -12,6 +12,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose
+} from '@/components/ui/dialog';
 
 const SystemDesign = () => {
   const { 
@@ -26,6 +36,17 @@ const SystemDesign = () => {
   } = useTaskContext();
   
   const [newTask, setNewTask] = useState('');
+  const [dailyGoal, setDailyGoal] = useState(3);
+  const [goalInputValue, setGoalInputValue] = useState('3');
+
+    // Load saved daily goal from localStorage on component mount
+  useEffect(() => {
+    const savedGoal = localStorage.getItem('sysDailyGoal');
+    if (savedGoal) {
+      setDailyGoal(parseInt(savedGoal));
+      setGoalInputValue(savedGoal);
+    }
+  }, []);
   
   const systemDesignTasks = getTasksByCategory('system_design');
   const completedTasks = systemDesignTasks.filter(task => task.completed);
@@ -36,6 +57,14 @@ const SystemDesign = () => {
     if (newTask.trim()) {
       addTask(newTask, 'system_design');
       setNewTask('');
+    }
+  };
+
+  const handleSetDailyGoal = () => {
+    const newGoal = parseInt(goalInputValue);
+    if (!isNaN(newGoal) && newGoal > 0) {
+      setDailyGoal(newGoal);
+      localStorage.setItem('sysDailyGoal', newGoal.toString());
     }
   };
 
@@ -149,9 +178,47 @@ const SystemDesign = () => {
             <GoalProgress
               categoryName="System Design"
               color="#8B5CF6"
-              dailyGoal={2}
+              dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('system_design')}
               weeklyStreak={getWeeklyStreak('system_design')}
+              onEditGoal={
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      Set daily goal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Set Daily Goal</DialogTitle>
+                      <DialogDescription>
+                        How many System Design tasks would you like to complete each day?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center space-x-2 py-4">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={goalInputValue}
+                        onChange={(e) => setGoalInputValue(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <DialogClose asChild>
+                        <Button type="button" onClick={handleSetDailyGoal}>
+                          Save
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              }
             />
             
             <Card className="mt-6">

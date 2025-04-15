@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Briefcase, ListChecks, GraduationCap, Plus } from 'lucide-react';
 import { useTaskContext } from '@/contexts/TaskContext';
@@ -12,6 +12,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose
+} from '@/components/ui/dialog';
 
 const JobSearch = () => {
   const { 
@@ -26,6 +36,17 @@ const JobSearch = () => {
   } = useTaskContext();
   
   const [newTask, setNewTask] = useState('');
+  const [dailyGoal, setDailyGoal] = useState(3);
+  const [goalInputValue, setGoalInputValue] = useState('3');
+
+  // Load saved daily goal from localStorage on component mount
+  useEffect(() => {
+    const savedGoal = localStorage.getItem('jobDailyGoal');
+    if (savedGoal) {
+      setDailyGoal(parseInt(savedGoal));
+      setGoalInputValue(savedGoal);
+    }
+  }, []);
   
   const jobSearchTasks = getTasksByCategory('job_search');
   const completedTasks = jobSearchTasks.filter(task => task.completed);
@@ -36,6 +57,14 @@ const JobSearch = () => {
     if (newTask.trim()) {
       addTask(newTask, 'job_search');
       setNewTask('');
+    }
+  };
+
+  const handleSetDailyGoal = () => {
+    const newGoal = parseInt(goalInputValue);
+    if (!isNaN(newGoal) && newGoal > 0) {
+      setDailyGoal(newGoal);
+      localStorage.setItem('jobDailyGoal', newGoal.toString());
     }
   };
 
@@ -149,9 +178,47 @@ const JobSearch = () => {
             <GoalProgress
               categoryName="Job Search"
               color="#F59E0B"
-              dailyGoal={4}
+              dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('job_search')}
               weeklyStreak={getWeeklyStreak('job_search')}
+              onEditGoal={
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      Set daily goal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Set Daily Goal</DialogTitle>
+                      <DialogDescription>
+                        How many Job applications would you like to complete each day?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center space-x-2 py-4">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={goalInputValue}
+                        onChange={(e) => setGoalInputValue(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <DialogClose asChild>
+                        <Button type="button" onClick={handleSetDailyGoal}>
+                          Save
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              }
             />
             
             <Card className="mt-6">

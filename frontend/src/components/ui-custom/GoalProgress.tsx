@@ -10,6 +10,7 @@ interface GoalProgressProps {
   dailyGoal: number;
   completed: number;
   weeklyStreak: number;
+  onEditGoal?: React.ReactNode;
 }
 
 const GoalProgress: React.FC<GoalProgressProps> = ({
@@ -18,13 +19,17 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
   dailyGoal,
   completed,
   weeklyStreak,
+  onEditGoal
 }) => {
   const progress = Math.min((completed / dailyGoal) * 100, 100);
   
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">Today's Progress</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-medium">Today's Progress</CardTitle>
+          {onEditGoal && <div className="flex items-center">{onEditGoal}</div>}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Code, ListChecks, GraduationCap, Plus } from 'lucide-react';
+import { Code, ListChecks, GraduationCap, Plus, Settings } from 'lucide-react'; 
 import { useTaskContext } from '@/contexts/TaskContext';
 import PageTransition from '@/components/layout/PageTransition';
 import TaskItem from '@/components/ui-custom/TaskItem';
@@ -11,6 +11,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose
+} from '@/components/ui/dialog';
 
 const DSA = () => {
   const { 
@@ -25,6 +35,18 @@ const DSA = () => {
   } = useTaskContext();
   
   const [newTask, setNewTask] = useState('');
+  const [dailyGoal, setDailyGoal] = useState(3);
+  const [goalInputValue, setGoalInputValue] = useState('3');
+
+    // Load saved daily goal from localStorage on component mount
+  useEffect(() => {
+    const savedGoal = localStorage.getItem('dsaDailyGoal');
+    if (savedGoal) {
+      setDailyGoal(parseInt(savedGoal));
+      setGoalInputValue(savedGoal);
+    }
+  }, []);
+
   
   const dsaTasks = getTasksByCategory('dsa');
   const completedTasks = dsaTasks.filter(task => task.completed);
@@ -38,6 +60,14 @@ const DSA = () => {
     }
   };
 
+  const handleSetDailyGoal = () => {
+    const newGoal = parseInt(goalInputValue);
+    if (!isNaN(newGoal) && newGoal > 0) {
+      setDailyGoal(newGoal);
+      localStorage.setItem('dsaDailyGoal', newGoal.toString());
+    }
+  };
+
   return (
     <PageTransition>
       <div className="max-w-7xl mx-auto px-4 pt-24 pb-16">
@@ -45,7 +75,7 @@ const DSA = () => {
           <div>
             <div className="flex items-center">
               <Badge variant="outline" className="mb-2 border-category-dsa text-category-dsa bg-category-dsa/5">
-                Study Tracker
+                Study Tracker     
               </Badge>
             </div>
             <h1 className="text-3xl font-bold flex items-center">
@@ -148,9 +178,47 @@ const DSA = () => {
             <GoalProgress
               categoryName="DSA"
               color="#3B82F6"
-              dailyGoal={5}
+              dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('dsa')}
               weeklyStreak={getWeeklyStreak('dsa')}
+              onEditGoal={
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      Set daily goal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Set Daily Goal</DialogTitle>
+                      <DialogDescription>
+                        How many DSA tasks would you like to complete each day?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center space-x-2 py-4">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={goalInputValue}
+                        onChange={(e) => setGoalInputValue(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <DialogClose asChild>
+                        <Button type="button" onClick={handleSetDailyGoal}>
+                          Save
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              }
             />
             
             <Card className="mt-6">
