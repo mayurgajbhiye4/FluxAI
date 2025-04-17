@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -79,5 +80,14 @@ class Goal(models.Model):
     weekly_streak = models.PositiveIntegerField(default=0)
     last_updated = models.DateField(auto_now=True)
 
+    class Meta:
+        unique_together = ['user', 'category']
+        ordering = ['category']
+
     def __str__(self):
-        return f"{self.get_category_display()} Goals"
+        return f"{self.get_category_display()} Goals for {self.user.username}"
+    
+    def save(self, *args, **kwargs):
+        # Update last_updated field
+        self.last_updated = timezone.now().date()
+        super().save(*args, **kwargs)

@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { TaskProvider } from "@/contexts/TaskContext";
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from "@/contexts/AuthContext";
+import { GoalProvider } from "@/contexts/GoalContext";
 
 import { BrowserRouter as Router } from 'react-router-dom';
 
@@ -31,6 +32,7 @@ const App = () => (
      <Router>
      <AuthProvider>
       <TaskProvider>
+        <GoalProvider>
         <Toaster />
         <Sonner />
           <div className="min-h-screen bg-background">
@@ -55,6 +57,7 @@ const App = () => (
               </Routes>
             </AnimatePresence>
           </div>
+        </GoalProvider>
       </TaskProvider>
     </AuthProvider>
   </Router>

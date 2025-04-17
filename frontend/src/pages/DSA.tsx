@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Code, ListChecks, GraduationCap, Plus, Settings } from 'lucide-react'; 
+import { Code, ListChecks, GraduationCap } from 'lucide-react'; 
 import { useTaskContext } from '@/contexts/TaskContext';
+import { useGoalContext } from "@/contexts/GoalContext";
 import PageTransition from '@/components/layout/PageTransition';
 import TaskItem from '@/components/ui-custom/TaskItem';
 import GoalProgress from '@/components/ui-custom/GoalProgress';
@@ -33,21 +34,21 @@ const DSA = () => {
     getTotalTasksCount,
     getWeeklyStreak
   } = useTaskContext();
+
+  const { getGoal, updateGoal, loading: goalsLoading } = useGoalContext();
   
   const [newTask, setNewTask] = useState('');
-  const [dailyGoal, setDailyGoal] = useState(3);
   const [goalInputValue, setGoalInputValue] = useState('3');
 
-    // Load saved daily goal from localStorage on component mount
-  useEffect(() => {
-    const savedGoal = localStorage.getItem('dsaDailyGoal');
-    if (savedGoal) {
-      setDailyGoal(parseInt(savedGoal));
-      setGoalInputValue(savedGoal);
-    }
-  }, []);
+  // Get DSA goal from context
+  const dsaGoal = getGoal('dsa');
+  const dailyGoal = dsaGoal.daily_target;
 
-  
+   // Initialize input with current goal value when component mounts or goal changes
+  useEffect(() => {
+    setGoalInputValue(dailyGoal.toString());
+  }, [dailyGoal]);
+
   const dsaTasks = getTasksByCategory('dsa');
   const completedTasks = dsaTasks.filter(task => task.completed);
   const incompleteTasks = dsaTasks.filter(task => !task.completed);
@@ -60,13 +61,13 @@ const DSA = () => {
     }
   };
 
-  const handleSetDailyGoal = () => {
+  const handleSetDailyGoal = async () => {
     const newGoal = parseInt(goalInputValue);
     if (!isNaN(newGoal) && newGoal > 0) {
-      setDailyGoal(newGoal);
-      localStorage.setItem('dsaDailyGoal', newGoal.toString());
+      await updateGoal('dsa', newGoal);
     }
-  };
+  };  
+
 
   return (
     <PageTransition>
@@ -180,7 +181,7 @@ const DSA = () => {
               color="#3B82F6"
               dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('dsa')}
-              weeklyStreak={getWeeklyStreak('dsa')}
+              weeklyStreak={dsaGoal.weekly_streak || getWeeklyStreak('dsa')}
               onEditGoal={
                 <Dialog>
                   <DialogTrigger asChild>

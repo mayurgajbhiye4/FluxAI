@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions 
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from .models import CustomUser,Task, Goal
@@ -11,6 +11,7 @@ from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
+from django.utils import timezone
 
 # Create your views here.
 def home(request):
@@ -156,13 +157,35 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class GoalViewSet(viewsets.ModelViewSet):
+class GoalViewSet(viewsets.ModelViewSet):   
     serializer_class = GoalSerializer
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Goal.objects.none()
-
+    
     def get_queryset(self):
-        return Goal.objects.filter(user=self.request.user).select_related('user')
+        """Only return goals belonging to the current user"""
+        return Goal.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        """Associate the goal with the current user on creation"""
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def update_streak(self, request):
+        """
+        Endpoint to update weekly streaks
+        This would typically be called by a scheduled job
+        """
+        user = request.user
+        today = timezone.now().date()
+        
+        # Get all goals for the user
+        goals = Goal.objects.filter(user=user)
+        
+        for goal in goals:
+            # Logic for updating streak based on task completion
+            # This is a simplified version - real implementation would check 
+            # if user completed daily target for the category
+            goal.weekly_streak = min(goal.weekly_streak + 1, 7)
+            goal.save()
+            
+        return Response({'status': 'streaks updated'}, status=status.HTTP_200_OK)

@@ -43,8 +43,8 @@ class TaskSerializer(serializers.ModelSerializer):
 class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
-        fields = '__all__'
-        read_only_fields = ('user', 'last_updated')
+        fields = ['id', 'category', 'daily_target', 'weekly_streak', 'last_updated']
+        read_only_fields = ['id', 'user', 'last_updated', 'weekly_streak']
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
