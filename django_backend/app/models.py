@@ -81,7 +81,7 @@ class Goal(models.Model):
     last_updated = models.DateField(auto_now=True)
 
     class Meta:
-        unique_together = ['user', 'category']
+        unique_together = ('user', 'category')
         ordering = ['category']
 
     def __str__(self):

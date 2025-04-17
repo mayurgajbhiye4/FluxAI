@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { BookOpen, ListChecks, GraduationCap, Plus } from 'lucide-react';
 import { useTaskContext } from '@/contexts/TaskContext';
+import { useGoalContext } from '@/contexts/GoalContext';
 import PageTransition from '@/components/layout/PageTransition';
 import TaskItem from '@/components/ui-custom/TaskItem';
 import GoalProgress from '@/components/ui-custom/GoalProgress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -35,18 +34,20 @@ const Development = () => {
     getWeeklyStreak
   } = useTaskContext();
   
+
+  const { getGoal, updateGoal } = useGoalContext();
+
   const [newTask, setNewTask] = useState('');
-  const [dailyGoal, setDailyGoal] = useState(3);
   const [goalInputValue, setGoalInputValue] = useState('3');
 
-      // Load saved daily goal from localStorage on component mount
+  // Get the development goal from GoalContext
+  const devGoal = getGoal('development');
+  const dailyGoal = devGoal.daily_target;
+
+  // Initialize goal input value when component mounts or goal changes
   useEffect(() => {
-    const savedGoal = localStorage.getItem('devDailyGoal');
-    if (savedGoal) {
-      setDailyGoal(parseInt(savedGoal));
-      setGoalInputValue(savedGoal);
-    }
-  }, []);
+    setGoalInputValue(dailyGoal.toString());
+  }, [dailyGoal]);
   
   const devTasks = getTasksByCategory('development');
   const completedTasks = devTasks.filter(task => task.completed);
@@ -60,11 +61,10 @@ const Development = () => {
     }
   };
 
-    const handleSetDailyGoal = () => {
+  const handleSetDailyGoal = () => {
     const newGoal = parseInt(goalInputValue);
     if (!isNaN(newGoal) && newGoal > 0) {
-      setDailyGoal(newGoal);
-      localStorage.setItem('devDailyGoal', newGoal.toString());
+      updateGoal('development', newGoal);
     }
   };
 
@@ -180,7 +180,7 @@ const Development = () => {
               color="#10B981"
               dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('development')}
-              weeklyStreak={getWeeklyStreak('development')}
+              weeklyStreak={devGoal.weekly_streak}
               onEditGoal={
                 <Dialog>
                   <DialogTrigger asChild>

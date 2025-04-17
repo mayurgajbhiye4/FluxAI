@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Server, ListChecks, GraduationCap, Plus } from 'lucide-react';
 import { useTaskContext } from '@/contexts/TaskContext';
+import { useGoalContext } from '@/contexts/GoalContext';
 import PageTransition from '@/components/layout/PageTransition';
 import TaskItem from '@/components/ui-custom/TaskItem';
 import GoalProgress from '@/components/ui-custom/GoalProgress';
@@ -35,18 +36,19 @@ const SystemDesign = () => {
     getWeeklyStreak
   } = useTaskContext();
   
+  const { getGoal, updateGoal } = useGoalContext();
+
   const [newTask, setNewTask] = useState('');
-  const [dailyGoal, setDailyGoal] = useState(3);
   const [goalInputValue, setGoalInputValue] = useState('3');
 
-    // Load saved daily goal from localStorage on component mount
+  // Get the system design goal from GoalContext
+  const sysGoal = getGoal('system_design');
+  const dailyGoal = sysGoal.daily_target;
+
+  // Initialize goal input value when component mounts or goal changes
   useEffect(() => {
-    const savedGoal = localStorage.getItem('sysDailyGoal');
-    if (savedGoal) {
-      setDailyGoal(parseInt(savedGoal));
-      setGoalInputValue(savedGoal);
-    }
-  }, []);
+    setGoalInputValue(dailyGoal.toString());
+  }, [dailyGoal]);
   
   const systemDesignTasks = getTasksByCategory('system_design');
   const completedTasks = systemDesignTasks.filter(task => task.completed);
@@ -63,8 +65,7 @@ const SystemDesign = () => {
   const handleSetDailyGoal = () => {
     const newGoal = parseInt(goalInputValue);
     if (!isNaN(newGoal) && newGoal > 0) {
-      setDailyGoal(newGoal);
-      localStorage.setItem('sysDailyGoal', newGoal.toString());
+      updateGoal('system_design', newGoal);
     }
   };
 
@@ -180,7 +181,7 @@ const SystemDesign = () => {
               color="#8B5CF6"
               dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('system_design')}
-              weeklyStreak={getWeeklyStreak('system_design')}
+              weeklyStreak={sysGoal.weekly_streak}
               onEditGoal={
                 <Dialog>
                   <DialogTrigger asChild>

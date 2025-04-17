@@ -11,6 +11,15 @@ const getCsrfToken = () => {
     ?.split('=')[1];
 };
 
+// Helper function to format category name
+function formatCategoryName(categoryValue: string) {
+  // Split by underscore and capitalize each word
+  return categoryValue
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 // Goal interface
 interface Goal {
   id: string;
@@ -151,7 +160,7 @@ export function GoalProvider({ children }) {
       
       toast({
         title: "Goal updated",
-        description: `${category.toUpperCase()} daily goal set to ${dailyTarget} tasks`,
+        description: `${formatCategoryName(category)} daily goal set to ${dailyTarget} tasks`,
       });
       
       return true;
