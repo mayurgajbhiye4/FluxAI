@@ -39,7 +39,7 @@ const JobSearch = () => {
   const { getGoal, updateGoal } = useGoalContext();
   
   const [newTask, setNewTask] = useState('');
-  const [goalInputValue, setGoalInputValue] = useState('3');
+  const [goalInputValue, setGoalInputValue] = useState('10');
 
   // Get the job search goal from GoalContext
   const jobGoal = getGoal('job_search');

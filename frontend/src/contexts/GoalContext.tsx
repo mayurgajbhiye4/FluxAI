@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useReducedMotion } from 'framer-motion';
 
 // Helper function for CSRF token
 const getCsrfToken = () => {
@@ -132,7 +133,7 @@ export function GoalProvider({ children }) {
             'X-CSRFToken': getCsrfToken(),
           },
           body: JSON.stringify({
-            category,
+            category, 
             daily_target: dailyTarget
           }),
           credentials: 'include'
@@ -144,19 +145,22 @@ export function GoalProvider({ children }) {
       }
       
       const updatedGoal = await response.json();
-      
-      setGoals(prev => ({
-        ...prev,
+
+      // Update state with new goal data
+      const updatedGoals = {
+        ...goals,
         [category]: {
           ...updatedGoal,
           last_updated: new Date(updatedGoal.last_updated)
         }
-      }));
+      };
       
-      // Update localStorage cache
-      if (user?.id) {
-        localStorage.setItem(`studytrack-goals-${user.id}`, JSON.stringify(goals));
-      }
+      setGoals(updatedGoals);
+      
+    // Update localStorage cache with the complete updated goals object
+    if (user?.id) {
+      localStorage.setItem(`studytrack-goals-${user.id}`, JSON.stringify(updatedGoals));
+    }
       
       toast({
         title: "Goal updated",

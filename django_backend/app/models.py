@@ -75,7 +75,7 @@ class Task(models.Model):
 
 class Goal(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='goals')
-    category = models.CharField(max_length=20, choices=Category.choices, unique=True)
+    category = models.CharField(max_length=20, choices=Category.choices)
     daily_target = models.PositiveIntegerField(default=3)
     weekly_streak = models.PositiveIntegerField(default=0)
     last_updated = models.DateField(auto_now=True)

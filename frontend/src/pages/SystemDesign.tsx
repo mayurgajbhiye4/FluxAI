@@ -39,7 +39,7 @@ const SystemDesign = () => {
   const { getGoal, updateGoal } = useGoalContext();
 
   const [newTask, setNewTask] = useState('');
-  const [goalInputValue, setGoalInputValue] = useState('3');
+  const [goalInputValue, setGoalInputValue] = useState('1');
 
   // Get the system design goal from GoalContext
   const sysGoal = getGoal('system_design');

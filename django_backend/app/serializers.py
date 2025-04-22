@@ -48,11 +48,7 @@ class GoalSerializer(serializers.ModelSerializer):
 
     def validate_category(self, value):
         user = self.context['request'].user
-        if Goal.objects.filter(user=user, category=value).exists():
-            raise serializers.ValidationError("goal with this category already exists.")
-        return value
-
-    def create(self, validated_data):   
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
-
+        if self.instance is None:
+            if Goal.objects.filter(user=user, category=value).exists():
+                raise serializers.ValidationError("goal with this category already exists.")
+        return value    
