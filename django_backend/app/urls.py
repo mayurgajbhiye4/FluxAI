@@ -1,9 +1,16 @@
 from django.urls import path, re_path, include
 from django.views.generic import TemplateView
 from .views import home, csrf_token, UserDetailsView, LoginView, SignupView, LogoutView
-from . import views
+
+from rest_framework.routers import DefaultRouter
+from app.views  import TaskViewSet, GoalViewSet
+
+router = DefaultRouter()
+router.register(r'tasks', TaskViewSet, basename="task")
+router.register(r'goals', GoalViewSet, basename="goal")
 
 urlpatterns = [
+    path('api/', include(router.urls)),
     path('', home, name='home'),
 
     path('api/me/', UserDetailsView.as_view(), name='user-details'),
