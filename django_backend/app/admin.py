@@ -9,7 +9,7 @@ admin.site.register(Task)
 
 @admin.register(Goal)
 class GoalAdmin(admin.ModelAdmin):
-    list_display = ('user', 'category', 'daily_target', 'weekly_streak', 'last_updated')
-    list_filter = ('category', 'last_updated')
+    list_display = ('user', 'category', 'daily_target', 'weekly_streak', 'last_completed_date')
+    list_filter = ('category', 'last_completed_date')
     search_fields = ('user__username', 'user__email', 'category')
     ordering = ('category', 'user')

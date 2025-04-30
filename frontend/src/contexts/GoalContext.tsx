@@ -27,7 +27,9 @@ interface Goal {
   category: string;
   daily_target: number;
   weekly_streak: number;
-  last_updated: Date;
+  current_week_days_completed: number[];
+  last_completed_date: string | null; 
+  streak_started_at: string | null; 
 }
 
 interface GoalContextType {
@@ -189,7 +191,9 @@ export function GoalProvider({ children }) {
       category, 
       daily_target: 3, 
       weekly_streak: 0,
-      last_updated: new Date()
+      current_week_days_completed: [],
+      last_completed_date: new Date().toISOString(),
+      streak_started_at: null
     };
   };
 

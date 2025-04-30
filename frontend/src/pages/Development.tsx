@@ -31,7 +31,7 @@ const Development = () => {
     deleteTask,
     getCompletedTasksCount,
     getTotalTasksCount,
-    getWeeklyStreak
+    getWeeklyData
   } = useTaskContext();
   
 
@@ -43,6 +43,7 @@ const Development = () => {
   // Get the development goal from GoalContext
   const devGoal = getGoal('development');
   const dailyGoal = devGoal.daily_target;
+  const { weeklyStreak, weekdaysCompleted } = getWeeklyData('development');
 
   // Initialize goal input value when component mounts or goal changes
   useEffect(() => {
@@ -180,7 +181,8 @@ const Development = () => {
               color="#10B981"
               dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('development')}
-              weeklyStreak={devGoal.weekly_streak}
+              weeklyStreak={devGoal.weekly_streak || weeklyStreak}
+              weekdaysCompleted={devGoal.current_week_days_completed || weekdaysCompleted}
               onEditGoal={
                 <Dialog>
                   <DialogTrigger asChild>

@@ -33,7 +33,7 @@ const SystemDesign = () => {
     deleteTask,
     getCompletedTasksCount,
     getTotalTasksCount,
-    getWeeklyStreak
+    getWeeklyData
   } = useTaskContext();
   
   const { getGoal, updateGoal } = useGoalContext();
@@ -44,6 +44,7 @@ const SystemDesign = () => {
   // Get the system design goal from GoalContext
   const sysGoal = getGoal('system_design');
   const dailyGoal = sysGoal.daily_target;
+  const { weeklyStreak, weekdaysCompleted } = getWeeklyData('system_design');
 
   // Initialize goal input value when component mounts or goal changes
   useEffect(() => {
@@ -181,7 +182,8 @@ const SystemDesign = () => {
               color="#8B5CF6"
               dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('system_design')}
-              weeklyStreak={sysGoal.weekly_streak}
+              weeklyStreak={sysGoal.weekly_streak || weeklyStreak}
+              weekdaysCompleted={sysGoal.current_week_days_completed || weekdaysCompleted}
               onEditGoal={
                 <Dialog>
                   <DialogTrigger asChild>

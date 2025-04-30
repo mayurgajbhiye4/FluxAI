@@ -43,8 +43,8 @@ class TaskSerializer(serializers.ModelSerializer):
 class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
-        fields = ['id', 'category', 'daily_target', 'weekly_streak', 'last_updated']
-        read_only_fields = ['id', 'user', 'last_updated', 'weekly_streak']
+        fields = ['id', 'category', 'daily_target', 'weekly_streak', 'last_completed_date']
+        read_only_fields = ['id', 'user', 'last_completed_date', 'weekly_streak']
 
     def validate_category(self, value):
         user = self.context['request'].user

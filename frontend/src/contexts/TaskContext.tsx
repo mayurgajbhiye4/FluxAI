@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Task } from '@/components/ui-custom/TaskItem';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext'
+import { useGoalContext } from '@/contexts/GoalContext';
 
 interface Summary {
   id: string;
@@ -33,7 +34,7 @@ interface TaskContextType {
   getTasksByCategory: (category: Task['category']) => Task[];
   getCompletedTasksCount: (category: Task['category']) => number;
   getTotalTasksCount: (category: Task['category']) => number;
-  getWeeklyStreak: (category: Task['category']) => number;
+  getWeeklyData: (category: Task['category']) => ({ weeklyStreak: number, weekdaysCompleted: number[] }),
   refreshTasks: () => Promise<void>;
 }
 
@@ -396,12 +397,44 @@ const deleteTask = async (id: string) => {
     return tasks.filter(task => task.category === category).length;
   };
 
-  // Simulate a weekly streak - in a real app, this would be calculated based on completed tasks per day
-  const getWeeklyStreak = (category: Task['category']) => {
-    // For demo purposes, return a random number between 1 and 7
-    const categoryIndex = ['dsa', 'development', 'system_design', 'job_search'].indexOf(category);
-    return Math.min(categoryIndex + 3, 7);
+  const getWeeklyData = (category: Task['category']) => {
+  // We'll use the tasks data to calculate streak information
+  const categoryTasks = tasks.filter(task => task.category === category);
+  
+  // Get completed tasks from the last 7 days
+  const today = new Date();
+  const oneWeekAgo = new Date(today);
+  oneWeekAgo.setDate(today.getDate() - 7);
+  
+  // Get days with completed tasks in the last week
+  const completedTasksByDay = categoryTasks
+    .filter(task => task.completed && new Date(task.updated_at) >= oneWeekAgo)
+    .reduce((days, task) => {
+      // Get the day of week (0 = Monday, 6 = Sunday)
+      const date = new Date(task.updated_at);
+      const dayOfWeek = date.getDay() === 0 ? 6 : date.getDay() - 1;
+      
+      // The date formatted as YYYY-MM-DD for grouping
+      const dateKey = date.toISOString().split('T')[0];
+      
+      // If we have a task completed on this day, add the day to our set
+      if (!days.daySet.has(dateKey)) {
+        days.daySet.add(dateKey);
+        days.weekdays.push(dayOfWeek);
+      }
+      
+      return days;
+    }, { daySet: new Set(), weekdays: [] });
+
+  // Calculate streak based on consecutive days
+  // For simplicity, we'll just count unique days with completed tasks in the past week
+  const weeklyStreak = completedTasksByDay.daySet.size;
+  
+  return {
+    weeklyStreak: weeklyStreak,
+    weekdaysCompleted: completedTasksByDay.weekdays
   };
+};
 
   const value = {
     tasks,
@@ -417,7 +450,7 @@ const deleteTask = async (id: string) => {
     getTasksByCategory,
     getCompletedTasksCount,
     getTotalTasksCount,
-    getWeeklyStreak,
+    getWeeklyData,
     refreshTasks
   };
 

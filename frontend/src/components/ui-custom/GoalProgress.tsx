@@ -1,7 +1,12 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface GoalProgressProps {
   categoryName: string;
@@ -9,6 +14,7 @@ interface GoalProgressProps {
   dailyGoal: number;
   completed: number;
   weeklyStreak: number;
+  weekdaysCompleted: number[]; // 0 = Monday, 6 = Sunday
   onEditGoal?: React.ReactNode;
 }
 
@@ -18,9 +24,21 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
   dailyGoal,
   completed,
   weeklyStreak,
+  weekdaysCompleted = [],
   onEditGoal
 }) => {
   const progress = Math.min((completed / dailyGoal) * 100, 100);
+  const [currentWeekday, setCurrentWeekday] = useState(0);
+
+   useEffect(() => {
+    // Get current weekday (0 = Monday, 6 = Sunday)
+    const today = new Date();
+    const day = today.getDay();
+    // Convert from Sunday = 0 to Monday = 0
+    setCurrentWeekday(day === 0 ? 6 : day - 1);
+  }, []);
+
+  const weekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
   return (
     <Card className="overflow-hidden">
@@ -52,19 +70,31 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
           
           <div className="flex justify-between items-center pt-2">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Weekly Streak</p>
+              <p className="text-xs text-muted-foreground mb-1">Weekly Streak ({weeklyStreak}/7 days)</p>
               <div className="flex space-x-1">
-                {[...Array(7)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                    className={`h-1.5 w-6 rounded-full ${
-                      i < weeklyStreak ? 'bg-primary' : 'bg-muted'
-                    }`}
-                  />
-                ))}
+                <TooltipProvider>
+                  {weekdayNames.map((day, i) => (
+                    <Tooltip key={i}>
+                      <TooltipTrigger asChild>
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: i * 0.1 }}
+                          className={`h-1.5 w-6 rounded-full ${
+                            weekdaysCompleted.includes(i) 
+                              ? 'bg-primary' 
+                              : i === currentWeekday 
+                                ? 'bg-primary/30' 
+                                : 'bg-muted'
+                          }`}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        {day}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </TooltipProvider>
               </div>
             </div>
             

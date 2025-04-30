@@ -33,7 +33,7 @@ const JobSearch = () => {
     deleteTask,
     getCompletedTasksCount,
     getTotalTasksCount,
-    getWeeklyStreak
+    getWeeklyData
   } = useTaskContext();
 
   const { getGoal, updateGoal } = useGoalContext();
@@ -44,6 +44,7 @@ const JobSearch = () => {
   // Get the job search goal from GoalContext
   const jobGoal = getGoal('job_search');
   const dailyGoal = jobGoal.daily_target;
+  const { weeklyStreak, weekdaysCompleted } = getWeeklyData('job_search');
 
   // Initialize goal input value when component mounts or goal changes
   useEffect(() => {
@@ -181,7 +182,8 @@ const JobSearch = () => {
               color="#F59E0B"
               dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('job_search')}
-              weeklyStreak={jobGoal.weekly_streak}
+              weeklyStreak={jobGoal.weekly_streak || weeklyStreak}
+              weekdaysCompleted={jobGoal.current_week_days_completed || weekdaysCompleted}
               onEditGoal={
                 <Dialog>
                   <DialogTrigger asChild>

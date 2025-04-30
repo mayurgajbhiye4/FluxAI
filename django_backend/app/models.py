@@ -78,7 +78,9 @@ class Goal(models.Model):
     category = models.CharField(max_length=20, choices=Category.choices)
     daily_target = models.PositiveIntegerField(default=3)
     weekly_streak = models.PositiveIntegerField(default=0)
-    last_updated = models.DateField(auto_now=True)
+    current_week_days_completed = models.JSONField(default=list)  # Stores days of week (0-6) completed this week
+    last_completed_date = models.DateField(null=True, blank=True)
+    streak_started_at = models.DateField(null=True, blank=True) 
 
     class Meta:
         unique_together = ('user', 'category')

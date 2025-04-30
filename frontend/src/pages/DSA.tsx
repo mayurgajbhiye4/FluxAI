@@ -32,7 +32,7 @@ const DSA = () => {
     deleteTask,
     getCompletedTasksCount,
     getTotalTasksCount,
-    getWeeklyStreak
+    getWeeklyData
   } = useTaskContext();
 
   const { getGoal, updateGoal, loading: goalsLoading } = useGoalContext();
@@ -43,6 +43,7 @@ const DSA = () => {
   // Get DSA goal from context
   const dsaGoal = getGoal('dsa');
   const dailyGoal = dsaGoal.daily_target;
+  const { weeklyStreak, weekdaysCompleted } = getWeeklyData('dsa');
 
    // Initialize input with current goal value when component mounts or goal changes
   useEffect(() => {
@@ -181,7 +182,8 @@ const DSA = () => {
               color="#3B82F6"
               dailyGoal={dailyGoal}
               completed={getCompletedTasksCount('dsa')}
-              weeklyStreak={dsaGoal.weekly_streak || getWeeklyStreak('dsa')}
+              weeklyStreak={dsaGoal.weekly_streak || weeklyStreak}
+              weekdaysCompleted={dsaGoal.current_week_days_completed || weekdaysCompleted}
               onEditGoal={
                 <Dialog>
                   <DialogTrigger asChild>

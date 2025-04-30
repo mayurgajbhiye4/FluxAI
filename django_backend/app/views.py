@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
 from django.utils import timezone
+from datetime import timedelta
 
 # Create your views here.
 def home(request):
@@ -169,23 +170,75 @@ class GoalViewSet(viewsets.ModelViewSet):
         """Associate the goal with the current user on creation"""
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['post'])
-    def update_streak(self, request):
+    @action(detail=True, methods=['post'])
+    def mark_daily_goal_completed(self, request, pk=None):
         """
-        Endpoint to update weekly streaks
-        This would typically be called by a scheduled job
+        Endpoint to mark a daily goal as completed for today
+        """
+        goal = self.get_object()
+        user = request.user
+        today = timezone.now().date()
+        today_weekday = today.weekday()  # Monday is 0, Sunday is 6
+        
+        # If this is a new week, reset the days completed
+        if goal.last_completed_date:
+            last_date = goal.last_completed_date
+            # Get the Monday of the last completion week
+            last_monday = last_date - timedelta(days=last_date.weekday())
+            # Get the Monday of this week
+            this_monday = today - timedelta(days=today.weekday())
+            
+            if this_monday > last_monday:
+                # We're in a new week, reset days completed
+                goal.current_week_days_completed = []
+        
+        # If we're marking a new day as completed
+        if today_weekday not in goal.current_week_days_completed:
+            goal.current_week_days_completed.append(today_weekday)
+            goal.last_completed_date = today
+            
+            # Initialize streak_started_at if this is the first completion
+            if not goal.streak_started_at:
+                goal.streak_started_at = today
+                
+            # Update weekly streak if necessary 
+            if len(goal.current_week_days_completed) > goal.weekly_streak:
+                goal.weekly_streak = len(goal.current_week_days_completed)
+                
+            goal.save()
+            
+        return Response({
+            'status': 'success',
+            'weekly_streak': goal.weekly_streak,
+            'current_week_days_completed': goal.current_week_days_completed
+        })
+    
+    @action(detail=False, methods=['post'])
+    def update_all_streaks(self, request):
+        """
+        Endpoint to check and update weekly streaks for all goals
+        This would be called by a scheduled job every day (ideally at midnight)
         """
         user = request.user
         today = timezone.now().date()
+        yesterday = today - timedelta(days=1)
         
         # Get all goals for the user
         goals = Goal.objects.filter(user=user)
         
         for goal in goals:
-            # Logic for updating streak based on task completion
-            # This is a simplified version - real implementation would check 
-            # if user completed daily target for the category
-            goal.weekly_streak = min(goal.weekly_streak + 1, 7)
+            # If we haven't completed yesterday's goal, reset streak
+            if goal.last_completed_date != yesterday:
+                # Check if we're in a new week 
+                if goal.last_completed_date:
+                    last_monday = goal.last_completed_date - timedelta(days=goal.last_completed_date.weekday())
+                    this_monday = today - timedelta(days=today.weekday()) 
+                    
+                    if this_monday > last_monday:
+                        # We're in a new week, reset the weekly streak data
+                        goal.current_week_days_completed = []
+                        # We keep the weekly_streak value until the user gets a higher streak this week
+            
             goal.save()
             
-        return Response({'status': 'streaks updated'}, status=status.HTTP_200_OK)
+        return Response({'status': 'streaks checked and updated'}, status=status.HTTP_200_OK)
