@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Code, ListChecks, GraduationCap } from 'lucide-react'; 
 import { useTaskContext } from '@/contexts/TaskContext';
 import { useGoalContext } from "@/contexts/GoalContext";

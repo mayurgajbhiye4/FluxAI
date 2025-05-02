@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Server, ListChecks, GraduationCap, Plus } from 'lucide-react';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { useGoalContext } from '@/contexts/GoalContext';
@@ -8,7 +7,6 @@ import TaskItem from '@/components/ui-custom/TaskItem';
 import GoalProgress from '@/components/ui-custom/GoalProgress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';

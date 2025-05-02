@@ -1,8 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useReducedMotion } from 'framer-motion';
 
 // Helper function for CSRF token
 const getCsrfToken = () => {
