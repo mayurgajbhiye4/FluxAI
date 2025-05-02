@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { Task } from '@/components/ui-custom/TaskItem';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext'
-import { useGoalContext } from '@/contexts/GoalContext';
 
 interface Summary {
   id: string;
