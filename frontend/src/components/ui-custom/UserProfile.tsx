@@ -10,10 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/components/ui-custom/ThemeProvider';
 
 const UserProfile = () => {
   const { user, loading, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -58,7 +60,26 @@ const UserProfile = () => {
         <DropdownMenuLabel>
           {user.email || user.username}
         </DropdownMenuLabel>
+        
         <DropdownMenuSeparator />
+
+        {/* Theme Toggle */}
+        <DropdownMenuItem onClick={toggleTheme} className="flex items-center cursor-pointer">
+          {theme === 'dark' ? (
+            <>
+              <Sun className="mr-2 h-4 w-4" />
+              <span>Light Mode</span>
+            </>
+          ) : (
+            <>
+              <Moon className="mr-2 h-4 w-4" />
+              <span>Dark Mode</span>
+            </>
+          )}
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+        
         <DropdownMenuItem onClick={handleSignOut} disabled={isLoggingOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>{isLoggingOut ? 'Signing out...' : 'Sign out'}</span>

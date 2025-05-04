@@ -107,7 +107,8 @@ const Index = () => {
           className="text-center mb-12"
         >
           <h1 className="text-4xl font-bold mb-4">
-            StudyTrack<span className="text-primary">AI</span>
+            StudyTrack
+            <span className="text-primary-500 dark:text-blue-400">AI</span>
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Your personal AI-powered study assistant. Track your progress, manage goals, 

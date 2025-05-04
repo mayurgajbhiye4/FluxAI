@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import { TaskProvider } from "@/contexts/TaskContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { GoalProvider } from "@/contexts/GoalContext";
+import { ThemeProvider } from "@/components/ui-custom/ThemeProvider";
 
 import { BrowserRouter as Router } from 'react-router-dom';
 
@@ -29,7 +30,8 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-     <Router>
+    <Router>
+    <ThemeProvider>
      <AuthProvider>
       <TaskProvider>
         <GoalProvider>
@@ -60,6 +62,7 @@ const App = () => (
         </GoalProvider>
       </TaskProvider>
     </AuthProvider>
+    </ThemeProvider>
   </Router>
 </TooltipProvider>
 </QueryClientProvider>

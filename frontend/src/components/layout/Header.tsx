@@ -38,7 +38,8 @@ const Header = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <NavLink to="/" className="text-xl font-medium">
-            StudyTrack<span className="text-primary">AI</span>
+            StudyTrack
+            <span className="text-primary-500 dark:text-blue-400">AI</span>
           </NavLink>
           
           <div className="flex items-center">
@@ -50,8 +51,8 @@ const Header = () => {
                 className={({ isActive }) => `
                   relative px-3 py-2 rounded-lg text-sm font-medium transition-all
                   ${isActive 
-                      ? 'text-primary' 
-                      : 'text-foreground/70 hover:text-foreground hover:bg-secondary/50'}
+                      ? 'text-blue-600 dark:text-blue-400'  
+                      : 'text-foreground/70 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'}
                   `}
               >
                 {({ isActive }) => (
@@ -61,7 +62,7 @@ const Header = () => {
                     {isActive && (
                       <motion.div
                         layoutId="active-nav-item"
-                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-primary rounded-full"
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-blue-500 dark:bg-blue-400 rounded-full"
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                       />
                     )}
