@@ -81,12 +81,15 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: i * 0.1 }}
                           className={`h-1.5 w-6 rounded-full ${
-                            weekdaysCompleted.includes(i) 
-                              ? 'bg-primary' 
-                              : i === currentWeekday 
-                                ? 'bg-primary/30' 
-                                : 'bg-muted'
+                            !weekdaysCompleted.includes(i)
+                              ? 'bg-muted'
+                              : ''
                           }`}
+                          style={
+                            weekdaysCompleted.includes(i) 
+                            ? { backgroundColor: color }
+                            : {}
+                          }
                         />
                       </TooltipTrigger>
                       <TooltipContent side="bottom" className="text-xs">
@@ -108,7 +111,8 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
                     stiffness: 500,
                     damping: 15
                   }}
-                  className="text-lg font-medium text-primary"
+                  className="text-lg font-medium"
+                  style = {{color}}
                 >
                   🎯 Goal Complete!
                 </motion.div>

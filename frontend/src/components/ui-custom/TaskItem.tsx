@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 
 export interface Task {
   id: string;
@@ -27,6 +28,38 @@ interface TaskItemProps {
   isLoading?: boolean;
 }
 
+const CategoryCheckbox = React.forwardRef<
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & { category: string }
+>(({ className, category, ...props }, ref) => {
+  // Map categories to specific Tailwind colors
+  const categoryColorMap = {
+    dsa: "border-blue-500 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500",
+    development: "border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500",
+    system_design: "border-purple-500 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500",
+    job_search: "border-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500",
+  };
+
+  return (
+    <CheckboxPrimitive.Root
+      ref={ref}
+      className={cn(
+        "peer h-5 w-5 shrink-0 rounded-sm border-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:text-white",
+        categoryColorMap[category] || "data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500",
+        className
+      )}
+      {...props}
+    >
+      <CheckboxPrimitive.Indicator
+        className={cn("flex items-center justify-center text-current")}
+      >
+        <Check className="h-4 w-4" />
+      </CheckboxPrimitive.Indicator>
+    </CheckboxPrimitive.Root>
+)});
+
+CategoryCheckbox.displayName = "CategoryCheckbox";
+
 const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete, isLoading = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
@@ -45,6 +78,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete, i
     job_search: 'border-category-job_search bg-category-job_search/5',
   };
 
+
   return (
     <motion.div
       layout
@@ -60,10 +94,10 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete, i
       )}
     >
       <div className="flex items-center gap-3 flex-1">
-        <Checkbox 
+        <CategoryCheckbox 
           checked={task.completed} 
           onCheckedChange={() => onToggle(task.id)}
-          className="transition-all data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground h-5 w-5"
+          category={task.category}
           disabled={isLoading}
         />
         

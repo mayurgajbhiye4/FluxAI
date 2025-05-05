@@ -195,7 +195,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     toast({
       title: 'Task added',
-      description: `"${title}" has been added to your tasks.`,
+      description: `"${title}" has been added to ${category}.`,
     });
 
   } catch (error) {
