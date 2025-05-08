@@ -1,5 +1,6 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 type User = {
   id: string;
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Check initial auth state
   useEffect(() => {
@@ -109,10 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'SignUp failed');
       }
-
-      const data = await response.json();
-      setUser(data.user);
-      navigate('/');
+      
+      return;
     } catch (error) {
       let errorMessage = 'An unexpected error occurred';
       if (error instanceof Error) {

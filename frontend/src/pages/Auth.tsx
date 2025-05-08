@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 import PageTransition from '@/components/layout/PageTransition';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Card,
   CardContent,
@@ -44,6 +45,30 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>('login');
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
+
+  // Check for query parameters on component mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get('tab');
+    const message = searchParams.get('message');
+    
+    if (tab === 'login') {
+      setActiveTab('login');
+    }
+    
+    if (message === 'signup_success') {
+      toast({
+        title: "Account created successfully!",
+        description: "You can now sign in with your credentials.",
+        variant: "default",
+      });
+      
+      // Clean URL after showing toast
+      navigate('/signin', { replace: true });
+    }
+  }, [location, navigate, toast]);
   
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -85,6 +110,11 @@ const Auth = () => {
     setIsLoading(true);
     try {   
       await signUp(values.email, values.username, values.password, values.confirmPassword);
+
+      signupForm.reset();
+
+      navigate('/signin?tab=login&message=signup_success');
+
     } catch(error){
         if (error instanceof Error){
             const message = error.message.toLowerCase();
@@ -123,7 +153,8 @@ const Auth = () => {
           <Card className="w-full">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold">
-                StudyTrack<span className="text-primary">AI</span>
+                StudyTrack
+                <span className="text-primary-500 dark:text-blue-400">AI</span>
               </CardTitle>
               <CardDescription>
                 {activeTab === 'login' ? 'Sign in to your account' : 'Create a new account'}
