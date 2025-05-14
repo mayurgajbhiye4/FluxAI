@@ -2,13 +2,9 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate  } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Code, BookOpen, Server, Briefcase, Bot, LogIn } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 import UserProfile from '@/components/ui-custom/UserProfile';
 
 const Header = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
