@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Task } from '@/components/ui-custom/TaskItem';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext'
+import Development from '@/pages/Development';
 
 interface Summary {
   id: string;
@@ -10,6 +11,13 @@ interface Summary {
   content: string;
   created_at: Date;
 }
+
+const categoryMap: Record<string, string> = {
+  dsa: 'DSA',
+  job_search: 'Job Search',
+  development: 'Development',
+  system_design: 'System Design'
+};
 
 const getCsrfToken = () => {
   // Try to get the CSRF token from cookies
@@ -195,7 +203,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     toast({
       title: 'Task added',
-      description: `"${title}" has been added to ${category}.`,
+      description: `"${title}" has been added to ${categoryMap[category] || category}.`,
     });
 
   } catch (error) {
