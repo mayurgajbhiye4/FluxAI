@@ -1,19 +1,34 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useLocation, useNavigate  } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Code, BookOpen, Server, Briefcase, Bot, LogIn } from 'lucide-react';
+import { Code, BookOpen, Server, Briefcase, Bot } from 'lucide-react';
 import UserProfile from '@/components/ui-custom/UserProfile';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Check if screen is mobile-sized
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is typical md breakpoint
+    };
+
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
-    
+
+    checkMobile();
+    handleScroll();
+
+    window.addEventListener('resize', checkMobile);
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    //cleanup
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const navItems = [
@@ -25,11 +40,23 @@ const Header = () => {
     { path: '/assistant', label: 'AI Assistant', icon: <Bot className="h-4 w-4 mr-1" />, requiresAuth: true },
   ];
 
+   // Get the appropriate header background class based on scroll state and theme
+   const getHeaderBgClass = () => {
+    if (isMobile) {
+      // On mobile, keep solid background
+      return 'bg-background dark:bg-background';
+    } else if (scrolled) {
+      // When scrolled on desktop
+      return 'glass dark:glass-dark shadow-sm';
+    } else {
+      // Initial state on desktop
+      return 'bg-transparent';
+    }
+  };
+
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-3 ${
-        scrolled ? 'glass shadow-sm' : 'bg-transparent'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-3 ${getHeaderBgClass()}`}
     >
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
