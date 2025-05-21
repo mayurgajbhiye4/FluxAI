@@ -103,9 +103,10 @@ export default {
         'fade-in': 'fade-in 0.4s ease-out'
 			},
       fontFamily: {
-        sans: ['SF Pro Display', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       }
 		}
 	},
 	plugins: [tailwindcssAnimate],
 } satisfies Config;
+	
