@@ -161,7 +161,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 class GoalViewSet(viewsets.ModelViewSet):   
     serializer_class = GoalSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+   
     def get_queryset(self):
         """Only return goals belonging to the current user"""
         return Goal.objects.filter(user=self.request.user)
@@ -176,69 +176,47 @@ class GoalViewSet(viewsets.ModelViewSet):
         Endpoint to mark a daily goal as completed for today
         """
         goal = self.get_object()
-        user = request.user
         today = timezone.now().date()
-        today_weekday = today.weekday()  # Monday is 0, Sunday is 6
         
-        # If this is a new week, reset the days completed
-        if goal.last_completed_date:
-            last_date = goal.last_completed_date
-            # Get the Monday of the last completion week
-            last_monday = last_date - timedelta(days=last_date.weekday())
-            # Get the Monday of this week
-            this_monday = today - timedelta(days=today.weekday())
-            
-            if this_monday > last_monday:
-                # We're in a new week, reset days completed
-                goal.current_week_days_completed = []
+        # Use the model's method to add completed day
+        goal.add_completed_day(today)
         
-        # If we're marking a new day as completed
-        if today_weekday not in goal.current_week_days_completed:
-            goal.current_week_days_completed.append(today_weekday)
-            goal.last_completed_date = today
-            
-            # Initialize streak_started_at if this is the first completion
-            if not goal.streak_started_at:
-                goal.streak_started_at = today
-                
-            # Update weekly streak if necessary 
-            if len(goal.current_week_days_completed) > goal.weekly_streak:
-                goal.weekly_streak = len(goal.current_week_days_completed)
-                
-            goal.save()
-            
         return Response({
             'status': 'success',
+            'message': 'Daily goal marked as completed',
             'weekly_streak': goal.weekly_streak,
-            'current_week_days_completed': goal.current_week_days_completed
+            'current_week_days_completed': goal.current_week_days_completed,
+            'days_completed_this_week': len(goal.current_week_days_completed),
+            'is_week_completed': goal.is_week_completed(),
+            'last_completed_date': goal.last_completed_date,
+            'current_week_start': goal.current_week_start
         })
-    
-    @action(detail=False, methods=['post'])
-    def update_all_streaks(self, request):
+
+
+    @action(detail=True, methods=['post'])
+    def remove_completed_day(self, request, pk=None):
         """
-        Endpoint to check and update weekly streaks for all goals
-        This would be called by a scheduled job every day (ideally at midnight)
+        Remove today from completed days (undo completion)
         """
-        user = request.user
+        goal = self.get_object()
         today = timezone.now().date()
-        yesterday = today - timedelta(days=1)
+        today_weekday = today.weekday()  # 0 = Monday, 6 = Sunday
         
-        # Get all goals for the user
-        goals = Goal.objects.filter(user=user)
-        
-        for goal in goals:
-            # If we haven't completed yesterday's goal, reset streak
-            if goal.last_completed_date != yesterday:
-                # Check if we're in a new week 
-                if goal.last_completed_date:
-                    last_monday = goal.last_completed_date - timedelta(days=goal.last_completed_date.weekday())
-                    this_monday = today - timedelta(days=today.weekday()) 
-                    
-                    if this_monday > last_monday:
-                        # We're in a new week, reset the weekly streak data
-                        goal.current_week_days_completed = []
-                        # We keep the weekly_streak value until the user gets a higher streak this week
+        if today_weekday in goal.current_week_days_completed:
+            goal.current_week_days_completed.remove(today_weekday)
             
+            # Update weekly streak after removal
+            goal.update_weekly_streak()
             goal.save()
             
-        return Response({'status': 'streaks checked and updated'}, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'success',
+                'message': 'Daily goal completion removed',
+                'weekly_streak': goal.weekly_streak,
+                'days_completed_this_week': len(goal.current_week_days_completed),
+                'is_week_completed': goal.is_week_completed()
+            })
+        else:
+            return Response({
+                'error': 'Today was not marked as completed'
+            }, status=status.HTTP_400_BAD_REQUEST)
