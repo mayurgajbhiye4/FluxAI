@@ -41,10 +41,40 @@ class TaskSerializer(serializers.ModelSerializer):
     
     
 class GoalSerializer(serializers.ModelSerializer):
+    days_completed_this_week = serializers.SerializerMethodField()
+    is_week_completed = serializers.SerializerMethodField()
+
     class Meta:
         model = Goal
-        fields = ['id', 'category', 'daily_target', 'weekly_streak', 'last_completed_date']
-        read_only_fields = ['id', 'user', 'last_completed_date', 'weekly_streak']
+        fields = [
+            'id', 
+            'category', 
+            'daily_target', 
+            'weekly_streak',
+            'current_week_days_completed',
+            'current_week_start',
+            'last_completed_date',
+            'streak_started_at',
+            'days_completed_this_week',
+            'is_week_completed'
+        ]   
+        read_only_fields = [
+            'id', 
+            'user', 
+            'weekly_streak',
+            'current_week_days_completed',
+            'current_week_start', 
+            'last_completed_date', 
+            'streak_started_at'
+        ]
+
+    def get_days_completed_this_week(self, obj):
+        """Return the number of days completed this week."""
+        return len(obj.current_week_days_completed)
+    
+    def get_is_week_completed(self, obj):
+        """Return whether the week completion criteria is met."""
+        return obj.is_week_completed()
 
     def validate_category(self, value):
         user = self.context['request'].user

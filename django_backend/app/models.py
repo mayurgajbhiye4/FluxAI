@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from datetime import timedelta
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -77,8 +78,10 @@ class Goal(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='goals')
     category = models.CharField(max_length=20, choices=Category.choices)
     daily_target = models.PositiveIntegerField(default=3)
+
     weekly_streak = models.PositiveIntegerField(default=0)
     current_week_days_completed = models.JSONField(default=list)  # Stores days of week (0-6) completed this week
+    current_week_start = models.DateField(null=True, blank=True) # Track which week we're in
     last_completed_date = models.DateField(null=True, blank=True)
     streak_started_at = models.DateField(null=True, blank=True) 
 
@@ -90,6 +93,84 @@ class Goal(models.Model):
         return f"{self.get_category_display()} Goals for {self.user.username}"
     
     def save(self, *args, **kwargs):
-        # Update last_updated field
-        self.last_updated = timezone.now().date()
         super().save(*args, **kwargs)
+
+
+    def get_monday_of_week(self, date_obj):
+        """Get the Monday of the week for a given date."""
+        days_since_monday = date_obj.weekday()  # Monday = 0, Sunday = 6
+        return date_obj - timedelta(days=days_since_monday)
+    
+
+    def is_new_week(self):
+        """Check if we've entered a new week since last tracking."""
+        if not self.current_week_start:
+            return True
+        
+        today = timezone.now().date()
+        current_monday = self.get_monday_of_week(today)
+        
+        return current_monday > self.current_week_start 
+    
+
+    def start_new_week(self):
+        """Initialize tracking for a new week."""
+        today = timezone.now().date()
+        self.current_week_start = self.get_monday_of_week(today)
+        self.current_week_days_completed = []
+        # Reset weekly streak to 0 for the new week
+        self.weekly_streak = 0
+        self.streak_started_at = None
+
+
+    def check_and_handle_new_week(self):
+        """Check if it's a new week and handle the transition."""
+        if self.is_new_week():
+            # Simply start the new week - no need to check previous week
+            self.start_new_week()
+            return True
+        return False
+
+
+    def is_week_completed(self):
+        """Check if the current week meets completion criteria."""
+        if not self.current_week_days_completed:
+            return False
+        
+        # Example: Consider week completed if at least 5 days were completed
+        # You can customize this logic based on your requirements
+        return len(self.current_week_days_completed) >= 5 
+    
+
+    def update_weekly_streak(self):
+        """Update weekly streak based on current week completion."""
+        if self.is_week_completed():
+            if self.weekly_streak == 0:
+                # First time completing this week   
+                self.weekly_streak = 1
+                self.streak_started_at = self.current_week_start
+        # Note: weekly_streak stays at 1 for the entire week once completed 
+        # If week is not completed, streak remains 0 
+    
+
+    def add_completed_day(self, date_obj=None):
+        """Add a completed day to the current week."""
+        if date_obj is None:
+            date_obj = timezone.now().date() 
+        
+        # Check for new week first
+        self.check_and_handle_new_week()
+        
+        # Get day of week (0 = Monday, 6 = Sunday)
+        day_of_week = date_obj.weekday()
+        
+        # Add if not already completed
+        if day_of_week not in self.current_week_days_completed:
+            self.current_week_days_completed.append(day_of_week)
+            self.current_week_days_completed.sort()  # Keep sorted for consistency
+            self.last_completed_date = date_obj
+
+            self.update_weekly_streak()
+            self.save()
+
+
