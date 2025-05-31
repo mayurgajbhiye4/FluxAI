@@ -26,8 +26,23 @@ interface Goal {
   daily_target: number;
   weekly_streak: number;
   current_week_days_completed: number[];
+  current_week_start: string | null;
   last_completed_date: string | null; 
   streak_started_at: string | null; 
+  days_completed_this_week: number;
+  is_week_completed: boolean;
+}
+
+// API Response interfaces
+interface MarkCompletedResponse {
+  status: string;
+  message: string;
+  weekly_streak: number;
+  current_week_days_completed: number[];
+  days_completed_this_week: number;
+  is_week_completed: boolean;
+  last_completed_date: string;
+  current_week_start: string;
 }
 
 interface GoalContextType {
@@ -36,6 +51,8 @@ interface GoalContextType {
   error: string | null;
   fetchGoals: () => Promise<void>;
   updateGoal: (category: string, dailyTarget: number) => Promise<boolean>;
+  markDailyGoalCompleted: (goalId: string) => Promise<boolean>;
+  removeDailyGoalCompletion: (goalId: string) => Promise<boolean>;
   getGoal: (category: string) => Goal;
 }
 
@@ -74,7 +91,9 @@ export function GoalProvider({ children }) {
       goalsData.forEach(goal => {
         goalsObject[goal.category] = {
           ...goal,
-          last_updated: new Date(goal.last_updated)
+          current_week_start: goal.current_week_start ? goal.current_week_start : null,
+          last_completed_date: goal.last_completed_date ? goal.last_completed_date : null,
+          streak_started_at: goal.streak_started_at ? goal.streak_started_at : null
         };
       });
       
@@ -141,7 +160,8 @@ export function GoalProvider({ children }) {
       }
       
       if (!response.ok) {
-        throw new Error('Failed to update goal');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update goal');
       }
       
       const updatedGoal = await response.json();
@@ -151,7 +171,9 @@ export function GoalProvider({ children }) {
         ...goals,
         [category]: {
           ...updatedGoal,
-          last_updated: new Date(updatedGoal.last_updated)
+          current_week_start: updatedGoal.current_week_start ? updatedGoal.current_week_start : null,
+          last_completed_date: updatedGoal.last_completed_date ? updatedGoal.last_completed_date : null,
+          streak_started_at: updatedGoal.streak_started_at ? updatedGoal.streak_started_at : null
         }
       };
       
@@ -182,6 +204,134 @@ export function GoalProvider({ children }) {
     }
   };
 
+    // Mark daily goal as completed
+  const markDailyGoalCompleted = async (goalId: string): Promise<boolean> => {
+      if (!user) return false;
+  
+      try {
+        const response = await fetch(`/api/goals/${goalId}/mark_daily_goal_completed/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+          },
+          credentials: 'include'
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to mark goal as completed');
+        }
+  
+        const responseData: MarkCompletedResponse = await response.json();
+  
+        // Find and update the goal in state
+        const updatedGoals = { ...goals };
+        for (const [category, goal] of Object.entries(updatedGoals)) {
+          if (goal.id === goalId) {
+            updatedGoals[category] = {
+              ...goal,
+              weekly_streak: responseData.weekly_streak,
+              current_week_days_completed: responseData.current_week_days_completed,
+              days_completed_this_week: responseData.days_completed_this_week,
+              is_week_completed: responseData.is_week_completed,
+              last_completed_date: responseData.last_completed_date,
+              current_week_start: responseData.current_week_start
+            };
+            break;
+          }
+        }
+  
+        setGoals(updatedGoals);
+  
+        // Update localStorage cache
+        if (user?.id) {
+          localStorage.setItem(`studytrack-goals-${user.id}`, JSON.stringify(updatedGoals));
+        }
+  
+        toast({
+          title: "Daily goal completed!",
+          description: responseData.message,
+        });
+  
+        return true;
+      } catch (err) {
+        console.error('Error marking goal as completed:', err);
+        setError('Failed to mark goal as completed');
+        
+        toast({
+          title: "Error",
+          description: `Failed to mark goal as completed: ${err.message}`,
+          variant: "destructive"
+        });
+        
+        return false;
+      }
+    };
+
+    // Remove daily goal completion (undo)
+  const removeDailyGoalCompletion = async (goalId: string): Promise<boolean> => {
+      if (!user) return false;
+  
+      try {
+        const response = await fetch(`/api/goals/${goalId}/remove_completed_day/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+          },
+          credentials: 'include'
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to remove goal completion');
+        }
+  
+        const responseData = await response.json();
+  
+        // Find and update the goal in state
+        const updatedGoals = { ...goals };
+        for (const [category, goal] of Object.entries(updatedGoals)) {
+          if (goal.id === goalId) {
+            updatedGoals[category] = {
+              ...goal,
+              weekly_streak: responseData.weekly_streak,
+              current_week_days_completed: responseData.current_week_days_completed || [],
+              days_completed_this_week: responseData.days_completed_this_week,
+              is_week_completed: responseData.is_week_completed
+            };
+            break;
+          }
+        }
+  
+        setGoals(updatedGoals);
+  
+        // Update localStorage cache
+        if (user?.id) {
+          localStorage.setItem(`studytrack-goals-${user.id}`, JSON.stringify(updatedGoals));
+        }
+  
+        toast({
+          title: "Goal completion removed",
+          description: responseData.message,
+        });
+  
+        return true;
+      } catch (err) {
+        console.error('Error removing goal completion:', err);
+        setError('Failed to remove goal completion');
+        
+        toast({
+          title: "Error",
+          description: `Failed to remove goal completion: ${err.message}`,
+          variant: "destructive"
+        });
+        
+        return false;
+      }
+    };
+
   // Get a specific goal by category, return default if not found
   const getGoal = (category: string): Goal => {
     return goals[category] || { 
@@ -190,8 +340,11 @@ export function GoalProvider({ children }) {
       daily_target: 3, 
       weekly_streak: 0,
       current_week_days_completed: [],
-      last_completed_date: new Date().toISOString(),
-      streak_started_at: null
+      current_week_start: null,
+      last_completed_date: null, 
+      streak_started_at: null,
+      days_completed_this_week: 0,
+      is_week_completed: false
     };
   };
 
@@ -230,6 +383,8 @@ export function GoalProvider({ children }) {
     error,
     fetchGoals,
     updateGoal,
+    markDailyGoalCompleted,
+    removeDailyGoalCompletion,
     getGoal
   };
 

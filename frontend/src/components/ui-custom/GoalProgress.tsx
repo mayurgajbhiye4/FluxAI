@@ -7,36 +7,50 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useGoalContext } from '@/contexts/GoalContext';
 
 interface GoalProgressProps {
+  category: string;
   categoryName: string;
   color: string;
-  dailyGoal: number;
-  completed: number;
-  weeklyStreak: number;
-  weekdaysCompleted: number[]; // 0 = Monday, 6 = Sunday
+  completed: number; // Current number of completed tasks
   onEditGoal?: React.ReactNode;
 }
 
 const GoalProgress: React.FC<GoalProgressProps> = ({
+  category,
   categoryName,
   color,
-  dailyGoal,
   completed,
-  weeklyStreak,
-  weekdaysCompleted = [],
   onEditGoal
 }) => {
-  const progress = Math.min((completed / dailyGoal) * 100, 100);
+  const { getGoal } = useGoalContext();
   const [currentWeekday, setCurrentWeekday] = useState(0);
 
-   useEffect(() => {
+  // Get goal data from context
+  const goal = getGoal(category);
+  const {
+    daily_target: dailyGoal,
+    weekly_streak: weeklyStreak,
+    current_week_days_completed: weekdaysCompleted = [],
+    days_completed_this_week: daysCompletedThisWeek,
+    is_week_completed: isWeekCompleted,
+    id: goalId
+  } = goal;
+
+  useEffect(() => {
     // Get current weekday (0 = Monday, 6 = Sunday)
     const today = new Date();
     const day = today.getDay();
     // Convert from Sunday = 0 to Monday = 0
     setCurrentWeekday(day === 0 ? 6 : day - 1);
   }, []);
+
+  // Check if today is completed
+  const isTodayCompleted = weekdaysCompleted.includes(currentWeekday);
+  
+  // Calculate progress based on completed tasks vs daily goal
+  const progress = Math.min((completed / dailyGoal) * 100, 100);
 
   const weekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
@@ -50,6 +64,7 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* Daily Progress Section */}
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-muted-foreground">Daily Goal</span>
@@ -68,64 +83,100 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
             </div>
           </div>
           
+          {/* Weekly Progress Section */}
           <div className="flex justify-between items-center pt-2">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Weekly Streak ({weeklyStreak}/7 days)</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                This Week ({daysCompletedThisWeek}/7 days) 
+                {isWeekCompleted && <span className="text-green-600 ml-1">✅ Week Complete!</span>}
+              </p>
               <div className="flex space-x-1">
                 <TooltipProvider>
-                  {weekdayNames.map((day, i) => (
-                    <Tooltip key={i}>
-                      <TooltipTrigger asChild>
-                        <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ delay: i * 0.1 }}
-                          className={`h-1.5 w-6 rounded-full ${
-                            !weekdaysCompleted.includes(i)
-                              ? 'bg-muted'
-                              : ''
-                          }`}
-                          style={
-                            weekdaysCompleted.includes(i) 
-                            ? { backgroundColor: color }
-                            : {}
-                          }
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="text-xs">
-                        {day}
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
+                  {weekdayNames.map((day, i) => {
+                    const isCompleted = weekdaysCompleted.includes(i);
+                    const isToday = i === currentWeekday;
+                    
+                    return (
+                      <Tooltip key={i}>
+                        <TooltipTrigger asChild>
+                          <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: i * 0.1 }}
+                            className={`h-2 w-6 rounded-full relative ${
+                              !isCompleted
+                                ? 'bg-muted'
+                                : ''
+                            } ${
+                              isToday ? 'ring-2 ring-offset-1 ring-gray-400' : ''
+                            }`}
+                            style={
+                              isCompleted 
+                              ? { backgroundColor: color }
+                              : {}
+                            }
+                          >
+                            {isToday && (
+                              <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
+                            )}
+                          </motion.div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          <div className="text-center">
+                            <div>{day}</div>
+                            {isToday && <div className="text-blue-500">Today</div>}
+                            {isCompleted && <div className="text-green-500">✓ Complete</div>}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
                 </TooltipProvider>
               </div>
             </div>
             
-            <div className="flex items-center">
-              {progress >= 100 ? (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ 
-                    type: "spring",
-                    stiffness: 500,
-                    damping: 15
-                  }}
-                  className="text-lg font-medium"
-                  style = {{color}}
-                >
-                  🎯 Goal Complete!
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-sm font-medium"
-                >
-                  {Math.round(dailyGoal - completed)} tasks to go
-                </motion.div>
-              )}
+            {/* Weekly Streak Display */}
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Weekly Streak</div>
+              <div className="text-lg font-bold" style={{ color }}>
+                {weeklyStreak}
+              </div>
             </div>
+          </div>
+
+          {/* Goal Status Message */}
+          <div className="flex justify-center">
+            {progress >= 100 ? (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 15
+                }}
+                className="text-center"
+              >
+                <div className="text-lg font-medium mb-1" style={{ color }}>
+                  🎯 Today's Goal Complete!
+                </div>
+                {isWeekCompleted && (
+                  <div className="text-sm text-green-600 font-medium">
+                    🔥 Week completed! Great job!
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center"
+              >
+                <div className="text-sm font-medium text-muted-foreground">
+                  {Math.round(dailyGoal - completed)} tasks remaining to complete today's goal
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </CardContent>
