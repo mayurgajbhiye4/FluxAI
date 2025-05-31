@@ -24,8 +24,10 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
   completed,
   onEditGoal
 }) => {
-  const { getGoal } = useGoalContext();
+  const { getGoal, markDailyGoalCompleted, removeDailyGoalCompletion } = useGoalContext();
   const [currentWeekday, setCurrentWeekday] = useState(0);
+  const [isMarking, setIsMarking] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   // Get goal data from context
   const goal = getGoal(category);
@@ -51,6 +53,32 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
   
   // Calculate progress based on completed tasks vs daily goal
   const progress = Math.min((completed / dailyGoal) * 100, 100);
+
+  const handleMarkCompleted = async () => {
+    if (!goalId || isMarking) return;
+    
+    setIsMarking(true);
+    try {
+      await markDailyGoalCompleted(goalId);
+    } catch (error) {
+      console.error('Error marking goal as completed:', error);
+    } finally {
+      setIsMarking(false);
+    }
+  };
+
+  const handleRemoveCompletion = async () => {
+    if (!goalId || isRemoving) return;
+    
+    setIsRemoving(true);
+    try {
+      await removeDailyGoalCompletion(goalId);
+    } catch (error) {
+      console.error('Error removing goal completion:', error);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
 
   const weekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
@@ -116,9 +144,6 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
                               : {}
                             }
                           >
-                            {isToday && (
-                              <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
-                            )}
                           </motion.div>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
