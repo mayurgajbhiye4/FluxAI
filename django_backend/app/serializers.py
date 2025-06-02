@@ -44,12 +44,20 @@ class GoalSerializer(serializers.ModelSerializer):
     days_completed_this_week = serializers.SerializerMethodField()
     is_week_completed = serializers.SerializerMethodField()
 
+    # Daily tracking fields
+    daily_progress = serializers.IntegerField(read_only=True)
+    last_daily_reset = serializers.DateField(read_only=True)
+    is_daily_goal_completed = serializers.SerializerMethodField()
+
     class Meta:
         model = Goal
         fields = [
             'id', 
             'category', 
             'daily_target', 
+            'daily_progress',
+            'last_daily_reset',
+            'is_daily_goal_completed',
             'weekly_streak',
             'current_week_days_completed',
             'current_week_start',
@@ -61,6 +69,8 @@ class GoalSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id', 
             'user', 
+            'daily_progress',
+            'last_daily_reset',
             'weekly_streak',
             'current_week_days_completed',
             'current_week_start', 
@@ -75,10 +85,22 @@ class GoalSerializer(serializers.ModelSerializer):
     def get_is_week_completed(self, obj):
         """Return whether the week completion criteria is met."""
         return obj.is_week_completed()
-
+    
+    def get_is_daily_goal_completed(self, obj):
+        """Check if today's daily goal is completed."""
+        return obj.is_daily_goal_completed()
+    
     def validate_category(self, value):
         user = self.context['request'].user
         if self.instance is None:
             if Goal.objects.filter(user=user, category=value).exists():
                 raise serializers.ValidationError("goal with this category already exists.")
         return value    
+    
+    def to_representation(self, instance):
+        """Ensure daily progress is reset if needed before serialization."""
+        instance.reset_daily_progress_if_new_day()
+        return super().to_representation(instance)
+    
+
+    
