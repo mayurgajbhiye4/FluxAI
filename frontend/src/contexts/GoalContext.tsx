@@ -24,6 +24,7 @@ interface Goal {
   id: string;
   category: string;
   daily_target: number;
+  daily_progress: number;
   weekly_streak: number;
   current_week_days_completed: number[];
   current_week_start: string | null;
@@ -31,6 +32,7 @@ interface Goal {
   streak_started_at: string | null; 
   days_completed_this_week: number;
   is_week_completed: boolean;
+  is_daily_goal_completed: boolean;
 }
 
 // API Response interfaces
@@ -45,6 +47,15 @@ interface MarkCompletedResponse {
   current_week_start: string;
 }
 
+interface ProgressResponse {
+  status: string;
+  message: string;
+  daily_progress: number;
+  daily_target: number;
+  is_daily_goal_completed: boolean;
+  daily_completion_triggered: boolean;
+}
+
 interface GoalContextType {
   goals: Record<string, Goal>;
   loading: boolean;
@@ -53,6 +64,8 @@ interface GoalContextType {
   updateGoal: (category: string, dailyTarget: number) => Promise<boolean>;
   markDailyGoalCompleted: (goalId: string) => Promise<boolean>;
   removeDailyGoalCompletion: (goalId: string) => Promise<boolean>;
+  addProgress: (goalId: string, amount?: number) => Promise<boolean>;
+  subtractProgress: (goalId: string, amount?: number) => Promise<boolean>;
   getGoal: (category: string) => Goal;
 }
 
@@ -204,7 +217,138 @@ export function GoalProvider({ children }) {
     }
   };
 
-    // Mark daily goal as completed
+  const addProgress = async (goalId: string, amount: number = 1): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const response = await fetch(`/api/goals/${goalId}/add_progress/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify({ amount }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add progress');
+      }
+
+      const responseData: ProgressResponse = await response.json();
+
+      // Find and update the goal in state
+      const updatedGoals = { ...goals };
+      for (const [category, goal] of Object.entries(updatedGoals)) {
+        if (goal.id === goalId) {
+          updatedGoals[category] = {
+            ...goal,
+            daily_progress: responseData.daily_progress,
+            is_daily_goal_completed: responseData.is_daily_goal_completed
+          };
+          break;
+        }
+      }
+
+      setGoals(updatedGoals);
+
+      // Update localStorage cache
+      if (user?.id) {
+        localStorage.setItem(`studytrack-goals-${user.id}`, JSON.stringify(updatedGoals));
+      }
+
+      toast({
+        title: "Progress added!",
+        description: responseData.message,
+      });
+
+      // If daily goal was just completed, show additional celebration
+      if (responseData.daily_completion_triggered) {
+        toast({
+          title: "🎉 Daily goal completed!",
+          description: "Great job reaching your daily target!",
+        });
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error adding progress:', err);
+      setError('Failed to add progress');
+      
+      toast({
+        title: "Error",
+        description: `Failed to add progress: ${err.message}`,
+        variant: "destructive"
+      });
+      
+      return false;
+    }
+  };
+
+  const subtractProgress = async (goalId: string, amount: number = 1): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const response = await fetch(`/api/goals/${goalId}/subtract_progress/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify({ amount }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to subtract progress');
+      }
+
+      const responseData = await response.json();
+
+      // Find and update the goal in state
+      const updatedGoals = { ...goals };
+      for (const [category, goal] of Object.entries(updatedGoals)) {
+        if (goal.id === goalId) {
+          updatedGoals[category] = {
+            ...goal,
+            daily_progress: responseData.daily_progress,
+            is_daily_goal_completed: responseData.daily_progress >= goal.daily_target
+          };
+          break;
+        }
+      }
+
+      setGoals(updatedGoals);
+
+      // Update localStorage cache
+      if (user?.id) {
+        localStorage.setItem(`studytrack-goals-${user.id}`, JSON.stringify(updatedGoals));
+      }
+
+      toast({
+        title: "Progress updated",
+        description: `Subtracted ${amount} from daily progress`,
+      });
+
+      return true;
+    } catch (err) {
+      console.error('Error subtracting progress:', err);
+      setError('Failed to subtract progress');
+      
+      toast({
+        title: "Error",
+        description: `Failed to subtract progress: ${err.message}`,
+        variant: "destructive"
+      });
+      
+      return false;
+    }
+  };
+
+
+  // Mark daily goal as completed
   const markDailyGoalCompleted = async (goalId: string): Promise<boolean> => {
       if (!user) return false;
   
@@ -337,14 +481,16 @@ export function GoalProvider({ children }) {
     return goals[category] || { 
       id: '',
       category, 
-      daily_target: 3, 
+      daily_target: 3,
+      daily_progress: 0, 
       weekly_streak: 0,
       current_week_days_completed: [],
       current_week_start: null,
       last_completed_date: null, 
       streak_started_at: null,
       days_completed_this_week: 0,
-      is_week_completed: false
+      is_week_completed: false,
+      is_daily_goal_completed: false
     };
   };
 
@@ -385,6 +531,8 @@ export function GoalProvider({ children }) {
     updateGoal,
     markDailyGoalCompleted,
     removeDailyGoalCompletion,
+    addProgress,
+    subtractProgress,
     getGoal
   };
 
@@ -398,5 +546,3 @@ export const useGoalContext = () => {
   }
   return context;
 };
-
-
