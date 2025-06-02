@@ -24,10 +24,11 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
   completed,
   onEditGoal
 }) => {
-  const { getGoal, markDailyGoalCompleted, removeDailyGoalCompletion } = useGoalContext();
+  const { getGoal, removeDailyGoalCompletion, markDailyGoalCompleted } = useGoalContext();
   const [currentWeekday, setCurrentWeekday] = useState(0);
-  const [isMarking, setIsMarking] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isMarking, setIsMarking] = useState(false);
+  const [lastCompletedValue, setLastCompletedValue] = useState(0);
 
   // Get goal data from context
   const goal = getGoal(category);
@@ -53,13 +54,33 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
   
   // Calculate progress based on completed tasks vs daily goal
   const progress = Math.min((completed / dailyGoal) * 100, 100);
+  const isDailyGoalMet = completed >= dailyGoal;
+
+  // Auto-mark daily goal as completed when target is reached
+  useEffect(() => {
+    const shouldMarkCompleted = 
+      goalId && 
+      isDailyGoalMet && 
+      !isTodayCompleted && 
+      !isMarking &&
+      completed > lastCompletedValue; // Only trigger when completed tasks increase
+
+    if (shouldMarkCompleted) {
+      handleMarkCompleted();
+    }
+    
+    setLastCompletedValue(completed);
+  }, [completed, isDailyGoalMet, isTodayCompleted, goalId, isMarking]);
 
   const handleMarkCompleted = async () => {
     if (!goalId || isMarking) return;
     
     setIsMarking(true);
     try {
-      await markDailyGoalCompleted(goalId);
+      const success = await markDailyGoalCompleted(goalId);
+      if (success) {
+        console.log('Daily goal marked as completed successfully');
+      }
     } catch (error) {
       console.error('Error marking goal as completed:', error);
     } finally {
@@ -72,13 +93,18 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
     
     setIsRemoving(true);
     try {
-      await removeDailyGoalCompletion(goalId);
+      const success = await removeDailyGoalCompletion(goalId);
+      if (success) {
+        console.log('Goal completion removed successfully');
+      }
     } catch (error) {
       console.error('Error removing goal completion:', error);
     } finally {
       setIsRemoving(false);
     }
   };
+
+
 
   const weekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
@@ -98,6 +124,7 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
               <span className="text-muted-foreground">Daily Goal</span>
               <span className="font-medium">
                 {completed} / {dailyGoal} tasks
+                {isMarking && <span className="ml-2 text-blue-500">Marking...</span>}
               </span>
             </div>
             <div className="relative h-3 rounded-full overflow-hidden bg-secondary">
@@ -170,7 +197,7 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
           </div>
 
           {/* Goal Status Message */}
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center space-y-3">
             {progress >= 100 ? (
               <motion.div
                 initial={{ scale: 0 }}
@@ -201,6 +228,19 @@ const GoalProgress: React.FC<GoalProgressProps> = ({
                   {Math.round(dailyGoal - completed)} tasks remaining to complete today's goal
                 </div>
               </motion.div>
+            )}
+
+            {/* Action Buttons */}
+            {isTodayCompleted && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleRemoveCompletion}
+                  disabled={isRemoving || !goalId}
+                  className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRemoving ? 'Removing...' : 'Undo Today'}
+                </button>
+              </div>
             )}
           </div>
         </div>

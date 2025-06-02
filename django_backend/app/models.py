@@ -79,6 +79,9 @@ class Goal(models.Model):
     category = models.CharField(max_length=20, choices=Category.choices)
     daily_target = models.PositiveIntegerField(default=3)
 
+    daily_progress = models.PositiveIntegerField(default=0)  # Current day's completed tasks
+    last_daily_reset = models.DateField(null=True, blank=True)  # Track last reset date
+
     weekly_streak = models.PositiveIntegerField(default=0)
     current_week_days_completed = models.JSONField(default=list)  # Stores days of week (0-6) completed this week
     current_week_start = models.DateField(null=True, blank=True) # Track which week we're in
@@ -101,6 +104,35 @@ class Goal(models.Model):
         days_since_monday = date_obj.weekday()  # Monday = 0, Sunday = 6
         return date_obj - timedelta(days=days_since_monday)
     
+
+    def reset_daily_progress_if_new_day(self):
+        """Reset daily progress if it's a new day."""
+        today = timezone.now().date()
+        
+        if self.last_daily_reset != today:
+            self.daily_progress = 0
+            self.last_daily_reset = today
+            self.save()
+
+
+    def is_daily_goal_completed(self):
+        """Check if today's daily goal is completed."""
+        self.reset_daily_progress_if_new_day()  # Ensure we have current day's data
+        return self.daily_progress >= self.daily_target 
+    
+
+    def add_daily_progress(self, amount=1):
+        """Add progress to today's daily goal."""
+        self.reset_daily_progress_if_new_day()
+        
+        old_progress = self.daily_progress
+        self.daily_progress = min(self.daily_progress + amount, self.daily_target)
+        
+        # If daily goal is newly completed, mark the day as completed for weekly tracking
+        if old_progress < self.daily_target and self.daily_progress >= self.daily_target:
+            self.add_completed_day()
+        
+        self.save()
 
     def is_new_week(self):
         """Check if we've entered a new week since last tracking."""
