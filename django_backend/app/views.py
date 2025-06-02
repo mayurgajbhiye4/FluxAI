@@ -170,6 +170,52 @@ class GoalViewSet(viewsets.ModelViewSet):
         """Associate the goal with the current user on creation"""
         serializer.save(user=self.request.user)
 
+
+    @action(detail=True, methods=['post'])
+    def add_progress(self, request, pk=None):
+        """
+        Add progress to today's daily goal (task-level tracking)
+        """
+        goal = self.get_object()
+        amount = request.data.get('amount', 1)
+        
+        # Validate amount
+        if not isinstance(amount, int) or amount < 1:
+            return Response({
+                'error': 'Amount must be a positive integer'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if amount > 20:  # Reasonable upper limit
+            return Response({
+                'error': 'Amount too large'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Add progress using model method
+        goal.add_daily_progress(amount)
+        
+        return Response({
+            'status': 'success',
+            'message': f'Added {amount} to daily progress',
+            'daily_progress': goal.daily_progress,
+            'daily_target': goal.daily_target,
+            'is_daily_goal_completed': goal.is_daily_goal_completed(),
+            'daily_completion_triggered': goal.daily_progress >= goal.daily_target
+        })
+    
+    @action(detail=True, methods=['post'])
+    def subtract_progress(self, request, pk=None):
+        """
+        Subtract progress (for corrections)
+        """
+        goal = self.get_object()
+        amount = request.data.get('amount', 1)
+        
+        goal.reset_daily_progress_if_new_day()
+        goal.daily_progress = max(0, goal.daily_progress - amount)
+        goal.save()
+        
+        return Response({'daily_progress': goal.daily_progress})
+
     @action(detail=True, methods=['post'])
     def mark_daily_goal_completed(self, request, pk=None):
         """
