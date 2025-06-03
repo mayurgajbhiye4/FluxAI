@@ -21,7 +21,7 @@ function formatCategoryName(categoryValue: string) {
 
 // Goal interface
 interface Goal {
-  id: string;
+  id: number;
   category: string;
   daily_target: number;
   daily_progress: number;
@@ -62,10 +62,10 @@ interface GoalContextType {
   error: string | null;
   fetchGoals: () => Promise<void>;
   updateGoal: (category: string, dailyTarget: number) => Promise<boolean>;
-  markDailyGoalCompleted: (goalId: string) => Promise<boolean>;
-  removeDailyGoalCompletion: (goalId: string) => Promise<boolean>;
-  addProgress: (goalId: string, amount?: number) => Promise<boolean>;
-  subtractProgress: (goalId: string, amount?: number) => Promise<boolean>;
+  markDailyGoalCompleted: (goalId: number) => Promise<boolean>;
+  removeDailyGoalCompletion: (goalId: number) => Promise<boolean>;
+  addProgress: (goalId: number, amount?: number) => Promise<boolean>;
+  subtractProgress: (goalId: number, amount?: number) => Promise<boolean>;
   getGoal: (category: string) => Goal;
 }
 
@@ -184,9 +184,6 @@ export function GoalProvider({ children }) {
         ...goals,
         [category]: {
           ...updatedGoal,
-          current_week_start: updatedGoal.current_week_start ? updatedGoal.current_week_start : null,
-          last_completed_date: updatedGoal.last_completed_date ? updatedGoal.last_completed_date : null,
-          streak_started_at: updatedGoal.streak_started_at ? updatedGoal.streak_started_at : null
         }
       };
       
@@ -217,7 +214,7 @@ export function GoalProvider({ children }) {
     }
   };
 
-  const addProgress = async (goalId: string, amount: number = 1): Promise<boolean> => {
+  const addProgress = async (goalId: number, amount: number = 1): Promise<boolean> => {
     if (!user) return false;
 
     try {
@@ -286,7 +283,7 @@ export function GoalProvider({ children }) {
     }
   };
 
-  const subtractProgress = async (goalId: string, amount: number = 1): Promise<boolean> => {
+  const subtractProgress = async (goalId: number, amount: number = 1): Promise<boolean> => {
     if (!user) return false;
 
     try {
@@ -349,7 +346,7 @@ export function GoalProvider({ children }) {
 
 
   // Mark daily goal as completed
-  const markDailyGoalCompleted = async (goalId: string): Promise<boolean> => {
+  const markDailyGoalCompleted = async (goalId: number): Promise<boolean> => {
       if (!user) return false;
   
       try {
@@ -413,8 +410,8 @@ export function GoalProvider({ children }) {
       }
     };
 
-    // Remove daily goal completion (undo)
-  const removeDailyGoalCompletion = async (goalId: string): Promise<boolean> => {
+  // Remove daily goal completion (undo)
+  const removeDailyGoalCompletion = async (goalId: number): Promise<boolean> => {
       if (!user) return false;
   
       try {
@@ -479,7 +476,7 @@ export function GoalProvider({ children }) {
   // Get a specific goal by category, return default if not found
   const getGoal = (category: string): Goal => {
     return goals[category] || { 
-      id: '',
+      id: 0,
       category, 
       daily_target: 3,
       daily_progress: 0, 

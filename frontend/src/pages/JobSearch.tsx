@@ -177,6 +177,7 @@ const JobSearch = () => {
           
           <div>
             <GoalProgress
+              category='job_search'
               categoryName="Job Search"
               color="#F59E0B"
               dailyGoal={dailyGoal}

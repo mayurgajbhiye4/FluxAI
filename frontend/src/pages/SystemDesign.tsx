@@ -176,6 +176,7 @@ const SystemDesign = () => {
           
           <div>
             <GoalProgress
+              category='system_design'
               categoryName="System Design"
               color="#8B5CF6"
               dailyGoal={dailyGoal}

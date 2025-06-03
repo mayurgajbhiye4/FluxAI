@@ -177,6 +177,7 @@ const DSA = () => {
           
           <div>
             <GoalProgress
+              category='dsa'
               categoryName="DSA"
               color="#3B82F6"
               dailyGoal={dailyGoal}
