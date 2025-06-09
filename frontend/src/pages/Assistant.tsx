@@ -31,12 +31,12 @@ const Assistant = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <div className="flex items-center">
-              <Badge variant="outline" className="mb-2 border-primary text-primary bg-primary/5">
+              <Badge variant="outline" className="mb-2 border-primary text-gray-900 dark:text-white bg-primary/5">
                 AI Assistant
               </Badge>
             </div>
-            <h1 className="text-3xl font-bold flex items-center">
-              <Bot className="mr-2 h-7 w-7 text-primary" />
+            <h1 className="text-3xl font-bold flex items-center text-gray-900 dark:text-white">
+              <Bot className="mr-2 h-7 w-7 text-gray-900 dark:text-white" />
               Study Assistant
             </h1>
             <p className="text-muted-foreground mt-1">
