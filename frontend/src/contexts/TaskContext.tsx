@@ -4,6 +4,7 @@ import { Task } from '@/components/ui-custom/TaskItem';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext'
 import Development from '@/pages/Development';
+import { useGoalContext } from '@/contexts/GoalContext';
 
 interface Summary {
   id: string;
@@ -59,8 +60,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [tasks, setTasks] = useState<Task[]>([]);
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { fetchGoals } = useGoalContext();
 
   // Fetch current user info
   useEffect(() => {
@@ -238,34 +241,104 @@ const toggleTask = async (id: string) => {
   try {
     // Make API call to update the task in the backend
     const response = await fetch(`/api/tasks/${id}/`, {
-      method: 'PATCH', // or 'PUT' if your API requires the full resource
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken(), // Make sure you have this function available
+        'X-CSRFToken': getCsrfToken(),
       },
       body: JSON.stringify({
         completed: newCompleted
       }),
       credentials: 'include'
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to update task on the server');
+      throw new Error('Failed to update task');
     }
-    
-    const updatedTask = await response.json();
-    
+
+    // If task is being completed, update the goal progress
+    if (newCompleted) {
+      try {
+        // First get the goal ID for this category
+        const goalsResponse = await fetch('/api/goals/', {
+          credentials: 'include'
+        });
+        
+        if (goalsResponse.ok) {
+          const goals = await goalsResponse.json();
+          const categoryGoal = goals.find((goal: any) => goal.category === taskToToggle.category);
+          
+          if (categoryGoal) {
+            const goalResponse = await fetch(`/api/goals/${categoryGoal.id}/add_progress/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+              },
+              body: JSON.stringify({
+                amount: 1
+              }),
+              credentials: 'include'
+            });
+
+            if (!goalResponse.ok) {
+              console.error('Failed to update goal progress');
+            } else {
+              // After successful goal progress update, refresh the goals
+              await fetchGoals();
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error updating goal progress:', error);
+      }
+    } else {
+      // If task is being uncompleted, subtract progress
+      try {
+        const goalsResponse = await fetch('/api/goals/', {
+          credentials: 'include'
+        });
+        
+        if (goalsResponse.ok) {
+          const goals = await goalsResponse.json();
+          const categoryGoal = goals.find((goal: any) => goal.category === taskToToggle.category);
+          
+          if (categoryGoal) {
+            const goalResponse = await fetch(`/api/goals/${categoryGoal.id}/subtract_progress/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+              },
+              body: JSON.stringify({
+                amount: 1
+              }),
+              credentials: 'include'
+            });
+
+            if (!goalResponse.ok) {
+              console.error('Failed to subtract goal progress');
+            } else {
+              // After successful goal progress update, refresh the goals
+              await fetchGoals();
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error subtracting goal progress:', error);
+      }
+    }
   } catch (error) {
-    // Revert the local state change if the API call fails
+    // Revert the local state if the API call fails
     setTasks(prev => 
       prev.map(task => 
-        task.id === id ? { ...task, completed: taskToToggle.completed } : task
+        task.id === id ? { ...task, completed: !newCompleted } : task
       )
     );
     
     toast({
       title: 'Error',
-      description: `Failed to update task: ${error.message}`,
+      description: 'Failed to update task',
       variant: 'destructive'
     });
   }

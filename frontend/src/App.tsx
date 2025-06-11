@@ -33,10 +33,10 @@ const App = () => (
     <Router>
     <ThemeProvider>
      <AuthProvider>
-      <TaskProvider>
-        <GoalProvider>
-        <Toaster />
-        <Sonner />
+      <GoalProvider>
+        <TaskProvider>
+          <Toaster />
+          <Sonner />
           <div className="min-h-screen bg-background">
             <Header />
             <AnimatePresence mode="wait">
@@ -59,8 +59,8 @@ const App = () => (
               </Routes>
             </AnimatePresence>
           </div>
-        </GoalProvider>
-      </TaskProvider>
+        </TaskProvider>
+      </GoalProvider>
     </AuthProvider>
     </ThemeProvider>
   </Router>
