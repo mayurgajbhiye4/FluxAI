@@ -63,7 +63,6 @@ interface GoalContextType {
   fetchGoals: () => Promise<void>;
   updateGoal: (category: string, dailyTarget: number) => Promise<boolean>;
   markDailyGoalCompleted: (goalId: number) => Promise<boolean>;
-  removeDailyGoalCompletion: (goalId: number) => Promise<boolean>;
   addProgress: (goalId: number, amount?: number) => Promise<boolean>;
   subtractProgress: (goalId: number, amount?: number) => Promise<boolean>;
   getGoal: (category: string) => Goal;
@@ -311,7 +310,11 @@ export function GoalProvider({ children }) {
           updatedGoals[category] = {
             ...goal,
             daily_progress: responseData.daily_progress,
-            is_daily_goal_completed: responseData.daily_progress >= goal.daily_target
+            is_daily_goal_completed: responseData.is_daily_goal_completed,
+            weekly_streak: responseData.weekly_streak,
+            current_week_days_completed: responseData.current_week_days_completed,
+            days_completed_this_week: responseData.days_completed_this_week,
+            is_week_completed: responseData.is_week_completed
           };
           break;
         }
@@ -326,7 +329,7 @@ export function GoalProvider({ children }) {
 
       toast({
         title: "Progress updated",
-        description: `Subtracted ${amount} from daily progress`,
+        description: responseData.message,
       });
 
       return true;
@@ -343,7 +346,6 @@ export function GoalProvider({ children }) {
       return false;
     }
   };
-
 
   // Mark daily goal as completed
   const markDailyGoalCompleted = async (goalId: number): Promise<boolean> => {
@@ -410,69 +412,6 @@ export function GoalProvider({ children }) {
       }
     };
 
-  // Remove daily goal completion (undo)
-  const removeDailyGoalCompletion = async (goalId: number): Promise<boolean> => {
-      if (!user) return false;
-  
-      try {
-        const response = await fetch(`/api/goals/${goalId}/remove_completed_day/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCsrfToken(),
-          },
-          credentials: 'include'
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to remove goal completion');
-        }
-  
-        const responseData = await response.json();
-  
-        // Find and update the goal in state
-        const updatedGoals = { ...goals };
-        for (const [category, goal] of Object.entries(updatedGoals)) {
-          if (goal.id === goalId) {
-            updatedGoals[category] = {
-              ...goal,
-              weekly_streak: responseData.weekly_streak,
-              current_week_days_completed: responseData.current_week_days_completed || [],
-              days_completed_this_week: responseData.days_completed_this_week,
-              is_week_completed: responseData.is_week_completed
-            };
-            break;
-          }
-        }
-  
-        setGoals(updatedGoals);
-  
-        // Update localStorage cache
-        if (user?.id) {
-          localStorage.setItem(`studytrack-goals-${user.id}`, JSON.stringify(updatedGoals));
-        }
-  
-        toast({
-          title: "Goal completion removed",
-          description: responseData.message,
-        });
-  
-        return true;
-      } catch (err) {
-        console.error('Error removing goal completion:', err);
-        setError('Failed to remove goal completion');
-        
-        toast({
-          title: "Error",
-          description: `Failed to remove goal completion: ${err.message}`,
-          variant: "destructive"
-        });
-        
-        return false;
-      }
-    };
-
   // Get a specific goal by category, return default if not found
   const getGoal = (category: string): Goal => {
     return goals[category] || { 
@@ -527,7 +466,6 @@ export function GoalProvider({ children }) {
     fetchGoals,
     updateGoal,
     markDailyGoalCompleted,
-    removeDailyGoalCompletion,
     addProgress,
     subtractProgress,
     getGoal

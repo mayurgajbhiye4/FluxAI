@@ -211,10 +211,30 @@ class GoalViewSet(viewsets.ModelViewSet):
         amount = request.data.get('amount', 1)
         
         goal.reset_daily_progress_if_new_day()
+        old_progress = goal.daily_progress
         goal.daily_progress = max(0, goal.daily_progress - amount)
+        
+        # If progress falls below daily target, remove today from completed days
+        if old_progress >= goal.daily_target and goal.daily_progress < goal.daily_target:
+            today = timezone.now().date()
+            today_weekday = today.weekday()  # 0 = Monday, 6 = Sunday
+            if today_weekday in goal.current_week_days_completed:
+                goal.current_week_days_completed.remove(today_weekday)
+                goal.update_weekly_streak()
+        
         goal.save()
         
-        return Response({'daily_progress': goal.daily_progress})
+        return Response({
+            'status': 'success',
+            'message': f'Subtracted {amount} from daily progress',
+            'daily_progress': goal.daily_progress,
+            'daily_target': goal.daily_target,
+            'is_daily_goal_completed': goal.is_daily_goal_completed(),
+            'weekly_streak': goal.weekly_streak,
+            'current_week_days_completed': goal.current_week_days_completed,
+            'days_completed_this_week': len(goal.current_week_days_completed),
+            'is_week_completed': goal.is_week_completed()
+        })
 
     @action(detail=True, methods=['post'])
     def mark_daily_goal_completed(self, request, pk=None):
