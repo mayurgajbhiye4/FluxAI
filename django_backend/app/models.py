@@ -181,8 +181,20 @@ class Goal(models.Model):
                 # First time completing this week   
                 self.weekly_streak = 1
                 self.streak_started_at = self.current_week_start
-        # Note: weekly_streak stays at 1 for the entire week once completed 
-        # If week is not completed, streak remains 0 
+            elif self.streak_started_at and self.current_week_start:
+                # Check if this is a consecutive week
+                last_week_start = self.streak_started_at + timedelta(days=7)
+                if self.current_week_start == last_week_start:
+                    # Consecutive week completed
+                    self.weekly_streak += 1
+                else:
+                    # Streak broken, start over
+                    self.weekly_streak = 1
+                    self.streak_started_at = self.current_week_start
+        else:
+            # Week not completed, reset streak
+            self.weekly_streak = 0
+            self.streak_started_at = None
     
 
     def add_completed_day(self, date_obj=None):
