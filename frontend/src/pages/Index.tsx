@@ -27,7 +27,7 @@ const Categories = [
     route: '/development'
   },
   {
-    id: 'systemDesign',
+    id: 'system_design',
     title: 'System Design',
     description: 'Manage your system design learning, study topics covered, and practice problems.',
     icon: <Server className="h-5 w-5" />,
@@ -35,7 +35,7 @@ const Categories = [
     route: '/system-design'
   },
   {
-    id: 'jobSearch',
+    id: 'job_search',
     title: 'Job Search',
     description: 'Track your job applications, interviews, and networking activities.',
     icon: <Briefcase className="h-5 w-5" />,
