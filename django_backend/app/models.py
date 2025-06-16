@@ -119,6 +119,7 @@ class Goal(models.Model):
 
     def add_daily_progress(self, amount=1):
         """Add progress to today's daily goal."""
+        self.check_and_handle_new_week()
         self.reset_daily_progress_if_new_day()
         
         old_progress = self.daily_progress
