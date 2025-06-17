@@ -215,3 +215,20 @@ class Goal(models.Model):
             self.save()
 
 
+class AISummary(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='summaries')
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    source_type = models.CharField(max_length=20, choices=[('text', 'Text'), ('pdf', 'PDF')])
+    source_content = models.TextField(blank=True)  # Original text or PDF content
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'AI Summaries'
+
+    def __str__(self):
+        return f"{self.title} - {self.user.username}"
+
+

@@ -103,4 +103,14 @@ class GoalSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
     
 
+class AISummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AISummary
+        fields = ['id', 'title', 'content', 'created_at', 'updated_at', 'source_type']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+    
     
