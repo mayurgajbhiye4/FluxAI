@@ -13,13 +13,18 @@ from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
 from django.utils import timezone
-from datetime import timedelta
-import openai
 import os
 import tempfile
 import PyPDF2
+import google.generativeai as genai
 
-# Create your views here.
+try:
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+except AttributeError:
+    # Handle case where GEMINI_API_KEY might not be set during certain operations (e.g., collectstatic)
+    print("GEMINI_API_KEY not found in settings. AI features will be disabled.")
+    pass
+
 def home(request):
     return render(request, "index.html")
 
@@ -339,27 +344,20 @@ class AISummaryViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            # Initialize OpenAI client
-            client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-            
-            # Generate summary using OpenAI
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {
-                        "role": "system", 
-                        "content": "You are a helpful study assistant. Create a concise and well-structured summary of the provided text. Focus on key concepts, main ideas, and important details. Format the summary with clear sections and bullet points where appropriate. Make it suitable for study purposes."
-                    },
-                    {
-                        "role": "user", 
-                        "content": f"Please summarize this {source_type} content:\n\n{text}"
-                    }
-                ],
-                temperature=0.7,
-                max_tokens=1000
-            )
+            # Initialize the Gemini Model
+            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
 
-            summary_content = response.choices[0].message.content
+            # Create a clear prompt for Gemini
+            prompt = (
+                "You are a helpful study assistant. Create a concise and well-structured summary of the provided text. "
+                "Focus on key concepts, main ideas, and important details. "
+                "Format the summary with clear sections and bullet points where appropriate. Make it suitable for study purposes.\n\n"
+                f"Please summarize this {source_type} content:\n\n{text}"
+            )
+            
+            # Generate summary using Gemini
+            response = model.generate_content(prompt)
+            summary_content = response.text
 
             # Create summary object
             summary_obj = AISummary.objects.create(
@@ -381,15 +379,10 @@ class AISummaryViewSet(viewsets.ModelViewSet):
                 'data': serializer.data
             }, status=status.HTTP_201_CREATED)
 
-        except openai.OpenAIError as e:
-            return Response(
-                {'error': f'OpenAI API error: {str(e)}'},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
-            )
         except Exception as e:
             return Response(
-                {'error': f'Failed to generate summary: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {'error': f'Google Gemini API error or internal failure: {str(e)}'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
     @action(detail=False, methods=['post'])
@@ -438,27 +431,20 @@ class AISummaryViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Initialize OpenAI client
-            client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-            
-            # Generate summary using OpenAI
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {
-                        "role": "system", 
-                        "content": "You are a helpful study assistant. Create a comprehensive and well-structured summary of the provided PDF content. Focus on key concepts, main ideas, and important details. Format the summary with clear sections and bullet points where appropriate. Make it suitable for study purposes."
-                    },
-                    {
-                        "role": "user", 
-                        "content": f"Please summarize this PDF content:\n\n{text_content[:8000]}"  # Limit to avoid token limits
-                    }
-                ],
-                temperature=0.7,
-                max_tokens=1500
-            )
+            # Initialize the Gemini Model
+            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
 
-            summary_content = response.choices[0].message.content
+            # Create a clear prompt for Gemini, limiting input size
+            prompt = (
+                "You are a helpful study assistant. Create a comprehensive and well-structured summary of the provided PDF content. "
+                "Focus on key concepts, main ideas, and important details. "
+                "Format the summary with clear sections and bullet points where appropriate. Make it suitable for study purposes.\n\n"
+                f"Please summarize this PDF content:\n\n{text_content[:20000]}" # Limit input to avoid API errors
+            )
+            
+            # Generate summary using Gemini
+            response = model.generate_content(prompt)
+            summary_content = response.text
 
             # Create summary object
             summary_obj = AISummary.objects.create(
@@ -481,11 +467,6 @@ class AISummaryViewSet(viewsets.ModelViewSet):
                 'data': serializer.data
             }, status=status.HTTP_201_CREATED)
 
-        except openai.OpenAIError as e:
-            return Response(
-                {'error': f'OpenAI API error: {str(e)}'},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
-            )
         except Exception as e:
             return Response(
                 {'error': f'Failed to process PDF: {str(e)}'},
@@ -507,27 +488,23 @@ class AISummaryViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            # Initialize OpenAI client
-            client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-            
-            # Generate new summary using OpenAI
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {
-                        "role": "system", 
-                        "content": "You are a helpful study assistant. Create a fresh, concise and well-structured summary of the provided content. Focus on key concepts, main ideas, and important details. Format the summary with clear sections and bullet points where appropriate."
-                    },
-                    {
-                        "role": "user", 
-                        "content": f"Please create a new summary of this {summary.source_type} content:\n\n{summary.source_content}"
-                    }
-                ],
-                temperature=0.8,  # Slightly higher temperature for variation
-                max_tokens=1200
-            )
+            # Initialize Gemini Model
+            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
 
-            new_summary_content = response.choices[0].message.content
+             # Create a fresh prompt for Gemini
+            prompt = (
+                "You are a helpful study assistant. Create a fresh, concise and well-structured summary of the provided content. "
+                "Focus on key concepts, main ideas, and important details. "
+                "Format the summary with clear sections and bullet points where appropriate.\n\n"
+                f"Please create a new summary of this {summary.source_type} content:\n\n{summary.source_content}"
+            )
+            
+            # Configure a slightly different generation for variation
+            generation_config = genai.types.GenerationConfig(temperature=0.8)
+
+            # Generate new summary using Gemini
+            response = model.generate_content(prompt, generation_config=generation_config)
+            new_summary_content = response.text
 
             # Update the summary
             summary.content = new_summary_content
@@ -543,15 +520,10 @@ class AISummaryViewSet(viewsets.ModelViewSet):
                 'data': serializer.data
             }, status=status.HTTP_200_OK)
 
-        except openai.OpenAIError as e:
-            return Response(
-                {'error': f'OpenAI API error: {str(e)}'},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
-            )
         except Exception as e:
             return Response(
-                {'error': f'Failed to regenerate summary: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {'error': f'Google Gemini API error or internal failure: {str(e)}'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
     @action(detail=False, methods=['get'])
