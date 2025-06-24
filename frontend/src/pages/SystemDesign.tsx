@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Server, ListChecks, GraduationCap, Plus } from 'lucide-react';
+import { Server, ListChecks, GraduationCap, MessageSquare, Send, Loader2 } from 'lucide-react';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { useGoalContext } from '@/contexts/GoalContext';
 import PageTransition from '@/components/layout/PageTransition';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,12 @@ const SystemDesign = () => {
   const [newTask, setNewTask] = useState('');
   const [goalInputValue, setGoalInputValue] = useState('1');
 
+  // AI Assistant states
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasResponse, setHasResponse] = useState(false);
+
   // Get the system design goal from GoalContext
   const sysGoal = getGoal('system_design');
   const dailyGoal = sysGoal.daily_target;
@@ -66,6 +73,37 @@ const SystemDesign = () => {
     if (!isNaN(newGoal) && newGoal > 0) {
       updateGoal('system_design', newGoal);
     }
+  };
+
+  // AI Assistant functions
+  const handleAiSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiQuestion.trim()) return;
+
+    setIsGenerating(true);
+    
+    try {
+      // Simulate API call to AI service
+      // Replace this with your actual AI API call
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulated delay
+      
+      // Mock response - replace with actual AI response
+      const mockResponse = `Here's some guidance on your system design question: "${aiQuestion}"\n\nThis is an important aspect of system design. Here are some key considerations:\n\n• Consider scalability requirements and traffic patterns\n• Think about data consistency vs availability trade-offs\n• Evaluate different architectural patterns (microservices, monolithic, etc.)\n• Don't forget about monitoring, logging, and observability\n• Consider failure modes and recovery strategies\n\nWould you like me to dive deeper into any specific aspect of this design challenge?`;
+      
+      setAiResponse(mockResponse);
+      setHasResponse(true);
+    } catch (error) {
+      setAiResponse('Sorry, I encountered an error. Please try again.');
+      setHasResponse(true);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleClearResponse = () => {
+    setAiResponse('');
+    setAiQuestion('');
+    setHasResponse(false);
   };
 
   return (
@@ -223,25 +261,66 @@ const SystemDesign = () => {
               }
             />
             
+            {/* AI Assistant Card */}
             <Card className="mt-6">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">System Design Approach</CardTitle>
+                <CardTitle className="text-lg flex items-center">
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  System Design AI Assistant
+                </CardTitle>
+                <CardDescription>
+                  Ask questions about system architecture, scalability, design patterns, or case studies
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <div>
-                  <h4 className="font-medium mb-1">Core Components</h4>
-                  <p className="text-muted-foreground">Master fundamentals like load balancing, caching, and database sharding first.</p>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-medium mb-1">Case Studies</h4>
-                  <p className="text-muted-foreground">Analyze one real-world system design per week (e.g., Netflix, Uber, Twitter).</p>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-medium mb-1">Practice Method</h4>
-                  <p className="text-muted-foreground">Follow the STAR method: Scope, Traffic/Scale, API design, Resource estimation.</p>
-                </div>
+              <CardContent className="space-y-4">
+                {!hasResponse ? (
+                  <form onSubmit={handleAiSubmit} className="space-y-3">
+                    <Textarea
+                      placeholder="Ask me anything about system design..."
+                      value={aiQuestion}
+                      onChange={(e) => setAiQuestion(e.target.value)}
+                      className="min-h-[100px] resize-none"
+                      disabled={isGenerating}
+                    />
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={!aiQuestion.trim() || isGenerating}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Get Help
+                        </>
+                      )}
+                    </Button> 
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm font-medium mb-1">Your Question:</p>
+                      <p className="text-sm text-muted-foreground">{aiQuestion}</p>
+                    </div>
+                    
+                    <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                      <p className="text-sm font-medium mb-2">AI Response:</p>
+                      <div className="text-sm whitespace-pre-wrap">{aiResponse}</div>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={handleClearResponse}
+                      className="w-full"
+                    >
+                      Ask Another Question
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

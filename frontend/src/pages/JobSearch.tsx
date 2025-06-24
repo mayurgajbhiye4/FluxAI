@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Briefcase, ListChecks, GraduationCap, Plus } from 'lucide-react';
+import { Briefcase, ListChecks, GraduationCap, MessageSquare, Send, Loader2 } from 'lucide-react';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { useGoalContext } from '@/contexts/GoalContext';
 import PageTransition from '@/components/layout/PageTransition';
@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,12 @@ const JobSearch = () => {
   
   const [newTask, setNewTask] = useState('');
   const [goalInputValue, setGoalInputValue] = useState('10');
+  
+  // AI Assistant states
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasResponse, setHasResponse] = useState(false);
 
   // Get the job search goal from GoalContext
   const jobGoal = getGoal('job_search');
@@ -67,6 +74,37 @@ const JobSearch = () => {
     if (!isNaN(newGoal) && newGoal > 0) {
       updateGoal('job_search', newGoal);
     }
+  };
+
+  // AI Assistant functions
+  const handleAiSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiQuestion.trim()) return;
+
+    setIsGenerating(true);
+    
+    try {
+      // Simulate API call to AI service
+      // Replace this with your actual AI API call
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulated delay
+      
+      // Mock response - replace with actual AI response
+      const mockResponse = `Here's some help with your job search question: "${aiQuestion}"\n\nThis is a common concern in job searching. Here are some key points to consider:\n\n• Tailor your resume and cover letter for each application\n• Research the company culture and values before applying\n• Network with current employees through LinkedIn\n• Follow up professionally 1-2 weeks after applying\n• Prepare for behavioral and technical interviews\n\nWould you like me to elaborate on any specific aspect of your job search strategy?`;
+      
+      setAiResponse(mockResponse);
+      setHasResponse(true);
+    } catch (error) {
+      setAiResponse('Sorry, I encountered an error. Please try again.');
+      setHasResponse(true);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleClearResponse = () => {
+    setAiResponse('');
+    setAiQuestion('');
+    setHasResponse(false);
   };
 
   return (
@@ -224,25 +262,66 @@ const JobSearch = () => {
               }
             />
             
+            {/* AI Assistant Card */}
             <Card className="mt-6">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Job Search Strategy</CardTitle>
+                <CardTitle className="text-lg flex items-center">
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Job Search AI Assistant
+                </CardTitle>
+                <CardDescription>
+                  Ask questions about resumes, interviews, applications, or career advice
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <div>
-                  <h4 className="font-medium mb-1">Application Quota</h4>
-                  <p className="text-muted-foreground">Aim for 3-5 quality applications daily rather than mass applying.</p>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-medium mb-1">Follow-up Timeline</h4>
-                  <p className="text-muted-foreground">Follow up 1 week after applying if no response, then again after 2 weeks.</p>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-medium mb-1">Interview Prep</h4>
-                  <p className="text-muted-foreground">For each interview, research the company, prepare 3 questions, and practice STAR responses.</p>
-                </div>
+              <CardContent className="space-y-4">
+                {!hasResponse ? (
+                  <form onSubmit={handleAiSubmit} className="space-y-3">
+                    <Textarea
+                      placeholder="Ask me anything about job searching..."
+                      value={aiQuestion}
+                      onChange={(e) => setAiQuestion(e.target.value)}
+                      className="min-h-[100px] resize-none"
+                      disabled={isGenerating}
+                    />
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={!aiQuestion.trim() || isGenerating}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Get Help
+                        </>
+                      )}
+                    </Button> 
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm font-medium mb-1">Your Question:</p>
+                      <p className="text-sm text-muted-foreground">{aiQuestion}</p>
+                    </div>
+                    
+                    <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                      <p className="text-sm font-medium mb-2">AI Response:</p>
+                      <div className="text-sm whitespace-pre-wrap">{aiResponse}</div>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={handleClearResponse}
+                      className="w-full"
+                    >
+                      Ask Another Question
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

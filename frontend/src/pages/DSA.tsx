@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Code, ListChecks, GraduationCap } from 'lucide-react'; 
+import { Code, ListChecks, GraduationCap, MessageSquare, Send, Loader2 } from 'lucide-react'; 
 import { useTaskContext } from '@/contexts/TaskContext';
 import { useGoalContext } from "@/contexts/GoalContext";
 import PageTransition from '@/components/layout/PageTransition';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,12 @@ const DSA = () => {
   
   const [newTask, setNewTask] = useState('');
   const [goalInputValue, setGoalInputValue] = useState('3');
+  
+  // AI Assistant states
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasResponse, setHasResponse] = useState(false);
 
   // Get DSA goal from context
   const dsaGoal = getGoal('dsa');
@@ -66,8 +73,38 @@ const DSA = () => {
     if (!isNaN(newGoal) && newGoal > 0) {
       await updateGoal('dsa', newGoal);
     }
-  };  
+  };
 
+  // AI Assistant functions
+  const handleAiSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiQuestion.trim()) return;
+
+    setIsGenerating(true);
+    
+    try {
+      // Simulate API call to AI service
+      // Replace this with your actual AI API call
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulated delay
+      
+      // Mock response - replace with actual AI response
+      const mockResponse = `Here's some help with your DSA question: "${aiQuestion}"\n\nThis is a common problem in data structures and algorithms. Here are some key points to consider:\n\n• Start by understanding the problem constraints\n• Consider the time and space complexity requirements\n• Think about which data structure would be most efficient\n• Practice similar problems to build pattern recognition\n\nWould you like me to elaborate on any specific aspect?`;
+      
+      setAiResponse(mockResponse);
+      setHasResponse(true);
+    } catch (error) {
+      setAiResponse('Sorry, I encountered an error. Please try again.');
+      setHasResponse(true);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleClearResponse = () => {
+    setAiResponse('');
+    setAiQuestion('');
+    setHasResponse(false);
+  };
 
   return (
     <PageTransition>
@@ -224,25 +261,66 @@ const DSA = () => {
               }
             />
             
+            {/* AI Assistant Card */} 
             <Card className="mt-6">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">DSA Study Tips</CardTitle>
+                <CardTitle className="text-lg flex items-center">
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  DSA AI Assistant
+                </CardTitle>
+                <CardDescription>
+                  Ask questions about algorithms, data structures, or problem-solving strategies
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <div>
-                  <h4 className="font-medium mb-1">Study Pattern</h4>
-                  <p className="text-muted-foreground">Focus on one data structure or algorithm concept per week for depth.</p>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-medium mb-1">Problem Solving</h4>
-                  <p className="text-muted-foreground">Aim to solve at least 3 problems of varying difficulty levels each day.</p>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-medium mb-1">Review Strategy</h4>
-                  <p className="text-muted-foreground">Revisit solved problems after 7 days to strengthen memory retention.</p>
-                </div>
+              <CardContent className="space-y-4">
+                {!hasResponse ? (
+                  <form onSubmit={handleAiSubmit} className="space-y-3">
+                    <Textarea
+                      placeholder="Ask me anything about DSA..."
+                      value={aiQuestion}
+                      onChange={(e) => setAiQuestion(e.target.value)}
+                      className="min-h-[100px] resize-none"
+                      disabled={isGenerating}
+                    />
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={!aiQuestion.trim() || isGenerating}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Get Help
+                        </>
+                      )}
+                    </Button> 
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm font-medium mb-1">Your Question:</p>
+                      <p className="text-sm text-muted-foreground">{aiQuestion}</p>
+                    </div>
+                    
+                    <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                      <p className="text-sm font-medium mb-2">AI Response:</p>
+                      <div className="text-sm whitespace-pre-wrap">{aiResponse}</div>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={handleClearResponse}
+                      className="w-full"
+                    >
+                      Ask Another Question
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
