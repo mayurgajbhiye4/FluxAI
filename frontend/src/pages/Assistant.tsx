@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bot, FileText, Trash2, Download, RefreshCw, Filter } from 'lucide-react';
+import { Bot, FileText, Trash2, Download, RefreshCw } from 'lucide-react';
 import PageTransition from '@/components/layout/PageTransition';
 import AIAssistant from '@/components/ui-custom/AIAssistant';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 interface Summary { 
   id: string;
-  title: string;  
+  title: string;
   content: string;
   source_type: 'text' | 'pdf';
   created_at: string;

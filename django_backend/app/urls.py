@@ -3,12 +3,16 @@ from django.views.generic import TemplateView
 from .views import home, csrf_token, UserDetailsView, LoginView, SignupView, LogoutView
 
 from rest_framework.routers import DefaultRouter
-from app.views  import TaskViewSet, GoalViewSet, AISummaryViewSet
+from app.views  import TaskViewSet, GoalViewSet,DSAAIResponseViewSet, SoftwareDevAIResponseViewSet, SystemDesignAIResponseViewSet, JobSearchAIResponseViewSet
 
 router = DefaultRouter()
 router.register(r'tasks', TaskViewSet, basename="task")
 router.register(r'goals', GoalViewSet, basename="goal")
-router.register(r'summaries', AISummaryViewSet, basename='summaries')
+
+router.register(r'dsa-ai-responses', DSAAIResponseViewSet, basename='dsa-ai-response')
+router.register(r'software-dev-ai-responses', SoftwareDevAIResponseViewSet, basename='software-dev-ai-response')
+router.register(r'system-design-ai-responses', SystemDesignAIResponseViewSet, basename='system-design-ai-response')
+router.register(r'job-search-ai-responses', JobSearchAIResponseViewSet, basename='job-search-ai-response')
 
 urlpatterns = [
     path('api/', include(router.urls)),
