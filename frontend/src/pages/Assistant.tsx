@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 interface Summary { 
   id: string;
-  title: string;
+  title: string;  
   content: string;
   source_type: 'text' | 'pdf';
   created_at: string;

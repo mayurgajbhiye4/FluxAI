@@ -215,20 +215,424 @@ class Goal(models.Model):
             self.save()
 
 
-class AISummary(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='summaries')
-    title = models.CharField(max_length=255)
-    content = models.TextField()
+class DSAAIResponse(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='dsa_ai_responses')
+    question = models.TextField(help_text="The DSA question asked by the user")
+    response = models.TextField(help_text="AI generated response for the DSA question")
+    
+    # Optional: Add tags/topics for better categorization
+    topic_tags = models.CharField(
+        max_length=255, 
+        blank=True, 
+        help_text="Comma-separated tags like 'arrays,sorting,binary-search'"
+    )
+    
+    # Difficulty level if applicable
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard'),
+        ('unknown', 'Unknown'),
+    ]
+    difficulty = models.CharField(
+        max_length=10, 
+        choices=DIFFICULTY_CHOICES, 
+        default='unknown',
+        help_text="Difficulty level of the DSA problem discussed"
+    )
+    
+    # Problem source (LeetCode, HackerRank, etc.)
+    problem_source = models.CharField(
+        max_length=100, 
+        blank=True,
+        help_text="Source platform like LeetCode, HackerRank, etc."
+    )
+    
+    # Problem number/identifier
+    problem_id = models.CharField(
+        max_length=50, 
+        blank=True,
+        help_text="Problem number or identifier from the source"
+    )
+    
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    source_type = models.CharField(max_length=20, choices=[('text', 'Text'), ('pdf', 'PDF')])
-    source_content = models.TextField(blank=True)  # Original text or PDF content
-
+    
+    # User interaction tracking
+    is_helpful = models.BooleanField(
+        null=True, 
+        blank=True,
+        help_text="User feedback on response helpfulness"
+    )
+    
     class Meta:
         ordering = ['-created_at']
-        verbose_name_plural = 'AI Summaries'
+        verbose_name = 'DSA AI Response'
+        verbose_name_plural = 'DSA AI Responses'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['difficulty']),
+            models.Index(fields=['problem_source']),
+        ]
 
     def __str__(self):
-        return f"{self.title} - {self.user.username}"
+        return f"DSA Q&A: {self.question[:50]}... - {self.user.username}"
+    
+    def get_topic_tags_list(self):
+        """Return topic tags as a list"""
+        if self.topic_tags:
+            return [tag.strip() for tag in self.topic_tags.split(',') if tag.strip()]
+        return []
+    
+    def set_topic_tags_from_list(self, tags_list):
+        """Set topic tags from a list"""
+        self.topic_tags = ','.join(tags_list)
 
 
+class SoftwareDevAIResponse(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='software_dev_ai_responses')
+    question = models.TextField(help_text="The software development question asked by the user")
+    response = models.TextField(help_text="AI generated response for the software development question")
+    
+    # Optional: Add tags/topics for better categorization
+    topic_tags = models.CharField(
+        max_length=255, 
+        blank=True, 
+        help_text="Comma-separated tags like 'react,python,api,database,debugging'"
+    )
+    
+    # Technology stack
+    TECH_STACK_CHOICES = [
+        ('frontend', 'Frontend'),
+        ('backend', 'Backend'),
+        ('fullstack', 'Full Stack'),
+        ('mobile', 'Mobile'),
+        ('devops', 'DevOps'),
+        ('database', 'Database'),
+        ('other', 'Other'),
+    ]
+    tech_stack = models.CharField(
+        max_length=20, 
+        choices=TECH_STACK_CHOICES, 
+        default='other',
+        help_text="Technology stack category"
+    )
+    
+    # Programming language
+    programming_language = models.CharField(
+        max_length=50, 
+        blank=True,
+        help_text="Primary programming language discussed (e.g., Python, JavaScript, Java)"
+    )
+    
+    # Framework/Library
+    framework = models.CharField(
+        max_length=100, 
+        blank=True,
+        help_text="Framework or library discussed (e.g., React, Django, Express)"
+    )
+    
+    # Question type
+    QUESTION_TYPE_CHOICES = [
+        ('bug_fix', 'Bug Fix'),
+        ('feature', 'Feature Implementation'),
+        ('optimization', 'Performance Optimization'),
+        ('best_practice', 'Best Practices'),
+        ('architecture', 'Architecture Design'),
+        ('learning', 'Learning/Tutorial'),
+        ('other', 'Other'),
+    ]
+    question_type = models.CharField(
+        max_length=20,
+        choices=QUESTION_TYPE_CHOICES,
+        default='other',
+        help_text="Type of development question"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # User interaction tracking
+    is_helpful = models.BooleanField(
+        null=True, 
+        blank=True,
+        help_text="User feedback on response helpfulness"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Software Development AI Response'
+        verbose_name_plural = 'Software Development AI Responses'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['tech_stack']),
+            models.Index(fields=['programming_language']),
+            models.Index(fields=['question_type']),
+        ]
+
+    def __str__(self):
+        return f"Dev Q&A: {self.question[:50]}... - {self.user.username}"
+    
+    def get_topic_tags_list(self):
+        """Return topic tags as a list"""
+        if self.topic_tags:
+            return [tag.strip() for tag in self.topic_tags.split(',') if tag.strip()]
+        return []
+    
+    def set_topic_tags_from_list(self, tags_list):
+        """Set topic tags from a list"""
+        self.topic_tags = ','.join(tags_list)
+
+
+class SystemDesignAIResponse(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='system_design_ai_responses')
+    question = models.TextField(help_text="The system design question asked by the user")
+    response = models.TextField(help_text="AI generated response for the system design question")
+    
+    # Optional: Add tags/topics for better categorization
+    topic_tags = models.CharField(
+        max_length=255, 
+        blank=True, 
+        help_text="Comma-separated tags like 'scalability,database,microservices,caching'"
+    )
+    
+    # System scale/complexity
+    SCALE_CHOICES = [
+        ('small', 'Small Scale (< 1K users)'),
+        ('medium', 'Medium Scale (1K - 100K users)'),
+        ('large', 'Large Scale (100K - 1M users)'),
+        ('massive', 'Massive Scale (> 1M users)'),
+        ('unknown', 'Unknown Scale'),
+    ]
+    system_scale = models.CharField(
+        max_length=10, 
+        choices=SCALE_CHOICES, 
+        default='unknown',
+        help_text="Expected scale of the system being designed"
+    )
+    
+    # System type/domain
+    SYSTEM_TYPE_CHOICES = [
+        ('web_app', 'Web Application'),
+        ('mobile_app', 'Mobile Application'),
+        ('api', 'API/Service'),
+        ('data_pipeline', 'Data Pipeline'),
+        ('messaging', 'Messaging System'),
+        ('social_media', 'Social Media Platform'),
+        ('e_commerce', 'E-commerce Platform'),
+        ('streaming', 'Streaming Service'),
+        ('gaming', 'Gaming Platform'),
+        ('iot', 'IoT System'),
+        ('other', 'Other'),
+    ]
+    system_type = models.CharField(
+        max_length=20, 
+        choices=SYSTEM_TYPE_CHOICES, 
+        default='other',
+        help_text="Type of system being designed"
+    )
+    
+    # Design focus area
+    FOCUS_AREA_CHOICES = [
+        ('architecture', 'High-Level Architecture'),
+        ('database', 'Database Design'),
+        ('scalability', 'Scalability Solutions'),
+        ('performance', 'Performance Optimization'),
+        ('availability', 'High Availability'),
+        ('consistency', 'Data Consistency'),
+        ('security', 'Security Design'),
+        ('monitoring', 'Monitoring & Observability'),
+        ('deployment', 'Deployment Strategy'),
+        ('other', 'Other'),
+    ]
+    focus_area = models.CharField(
+        max_length=20,
+        choices=FOCUS_AREA_CHOICES,
+        default='architecture',
+        help_text="Primary focus area of the system design question"
+    )
+    
+    # Interview/Practice context
+    is_interview_prep = models.BooleanField(
+        default=False,
+        help_text="Whether this question is for interview preparation"
+    )
+    
+    # Company context (optional)
+    company_context = models.CharField(
+        max_length=100, 
+        blank=True,
+        help_text="Company or context for the system design (e.g., 'Design Twitter', 'Design Netflix')"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # User interaction tracking
+    is_helpful = models.BooleanField(
+        null=True, 
+        blank=True,
+        help_text="User feedback on response helpfulness"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'System Design AI Response'
+        verbose_name_plural = 'System Design AI Responses'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['system_scale']),
+            models.Index(fields=['system_type']),
+            models.Index(fields=['focus_area']),
+            models.Index(fields=['is_interview_prep']),
+        ]
+
+    def __str__(self):
+        return f"System Design Q&A: {self.question[:50]}... - {self.user.username}"
+    
+    def get_topic_tags_list(self):
+        """Return topic tags as a list"""
+        if self.topic_tags:
+            return [tag.strip() for tag in self.topic_tags.split(',') if tag.strip()]
+        return []
+    
+    def set_topic_tags_from_list(self, tags_list):
+        """Set topic tags from a list"""
+        self.topic_tags = ','.join(tags_list)
+
+
+class JobSearchAIResponse(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='job_search_ai_responses')
+    question = models.TextField(help_text="The job search question asked by the user")
+    response = models.TextField(help_text="AI generated response for the job search question")
+    
+    # Optional: Add tags/topics for better categorization
+    topic_tags = models.CharField(
+        max_length=255, 
+        blank=True, 
+        help_text="Comma-separated tags like 'resume,interview,salary,networking,cover-letter'"
+    )
+    
+    # Job search category
+    CATEGORY_CHOICES = [
+        ('resume', 'Resume/CV'),
+        ('cover_letter', 'Cover Letter'),
+        ('interview_prep', 'Interview Preparation'),
+        ('job_search', 'Job Search Strategy'),
+        ('salary_negotiation', 'Salary Negotiation'),
+        ('networking', 'Networking'),
+        ('career_advice', 'Career Advice'),
+        ('portfolio', 'Portfolio/Projects'),
+        ('linkedin', 'LinkedIn Profile'),
+        ('application', 'Job Application'),
+        ('other', 'Other'),
+    ]
+    category = models.CharField(
+        max_length=20, 
+        choices=CATEGORY_CHOICES, 
+        default='other',
+        help_text="Category of job search question"
+    )
+    
+    # Experience level context
+    EXPERIENCE_LEVEL_CHOICES = [
+        ('entry', 'Entry Level (0-2 years)'),
+        ('mid', 'Mid Level (2-5 years)'),
+        ('senior', 'Senior Level (5+ years)'),
+        ('lead', 'Lead/Manager Level'),
+        ('executive', 'Executive Level'),
+        ('career_change', 'Career Change'),
+        ('student', 'Student/Graduate'),
+    ]
+    experience_level = models.CharField(
+        max_length=15, 
+        choices=EXPERIENCE_LEVEL_CHOICES, 
+        blank=True,
+        help_text="Experience level context for the question"
+    )
+    
+    # Target role/field
+    target_role = models.CharField(
+        max_length=100, 
+        blank=True,
+        help_text="Target job role or field (e.g., Software Engineer, Product Manager, Data Scientist)"
+    )
+    
+    # Interview type (if applicable)
+    INTERVIEW_TYPE_CHOICES = [
+        ('behavioral', 'Behavioral Interview'),
+        ('technical', 'Technical Interview'),
+        ('system_design', 'System Design Interview'),
+        ('coding', 'Coding Interview'),
+        ('case_study', 'Case Study'),
+        ('phone_screen', 'Phone Screening'),
+        ('final_round', 'Final Round'),
+        ('other', 'Other'),
+    ]
+    interview_type = models.CharField(
+        max_length=15,
+        choices=INTERVIEW_TYPE_CHOICES,
+        blank=True,
+        help_text="Type of interview (if question is interview-related)"
+    )
+    
+    # Company size context
+    COMPANY_SIZE_CHOICES = [
+        ('startup', 'Startup (< 50 employees)'),
+        ('small', 'Small Company (50-200 employees)'),
+        ('medium', 'Medium Company (200-1000 employees)'),
+        ('large', 'Large Company (1000+ employees)'),
+        ('big_tech', 'Big Tech (FAANG/MAANG)'),
+        ('any', 'Any Size'),
+    ]
+    company_size = models.CharField(
+        max_length=10,
+        choices=COMPANY_SIZE_CHOICES,
+        blank=True,
+        help_text="Target company size context"
+    )
+    
+    # Priority/Urgency
+    is_urgent = models.BooleanField(
+        default=False,
+        help_text="Whether this is an urgent job search question (e.g., interview tomorrow)"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # User interaction tracking
+    is_helpful = models.BooleanField(
+        null=True, 
+        blank=True,
+        help_text="User feedback on response helpfulness"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Job Search AI Response'
+        verbose_name_plural = 'Job Search AI Responses'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['category']),
+            models.Index(fields=['experience_level']),
+            models.Index(fields=['interview_type']),
+            models.Index(fields=['is_urgent']),
+        ]
+
+    def __str__(self):
+        return f"Job Search Q&A: {self.question[:50]}... - {self.user.username}"
+    
+    def get_topic_tags_list(self):
+        """Return topic tags as a list"""
+        if self.topic_tags:
+            return [tag.strip() for tag in self.topic_tags.split(',') if tag.strip()]
+        return []
+    
+    def set_topic_tags_from_list(self, tags_list):
+        """Set topic tags from a list"""
+        self.topic_tags = ','.join(tags_list)

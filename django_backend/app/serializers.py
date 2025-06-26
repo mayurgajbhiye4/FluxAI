@@ -103,14 +103,172 @@ class GoalSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
     
 
-class AISummarySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AISummary
-        fields = ['id', 'title', 'content', 'created_at', 'updated_at', 'source_type']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+class DSAAIResponseSerializer(serializers.ModelSerializer):
+    topic_tags = serializers.ListField(
+        child=serializers.CharField(),
+        source='get_topic_tags_list',
+        write_only=False,
+        required=False
+    )
+    user = serializers.StringRelatedField(read_only=True)  # or use PrimaryKeyRelatedField for user id
 
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
+    class Meta:
+        model = DSAAIResponse
+        fields = [
+            'id',
+            'user',
+            'question',
+            'response',
+            'topic_tags',
+            'difficulty',
+            'problem_source',
+            'problem_id',
+            'created_at',
+            'updated_at',
+            'is_helpful',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+
+    def to_representation(self, instance):
+        """Convert topic_tags to a list for output."""
+        ret = super().to_representation(instance)
+        ret['topic_tags'] = instance.get_topic_tags_list()
+        return ret
+
+    def to_internal_value(self, data):
+        """Convert topic_tags from list to comma-separated string for input."""
+        tags = data.get('topic_tags')
+        if tags is not None and isinstance(tags, list):
+            data = data.copy()
+            data['topic_tags'] = ','.join(tags)
+        return super().to_internal_value(data)
     
+
+class SoftwareDevAIResponseSerializer(serializers.ModelSerializer):
+    topic_tags = serializers.ListField(
+        child=serializers.CharField(),
+        source='get_topic_tags_list',
+        write_only=False,
+        required=False
+    )
+    user = serializers.StringRelatedField(read_only=True)  # or use PrimaryKeyRelatedField for user id
+
+    class Meta:
+        model = SoftwareDevAIResponse
+        fields = [
+            'id',
+            'user',
+            'question',
+            'response',
+            'topic_tags',
+            'tech_stack',
+            'programming_language',
+            'framework',
+            'question_type',
+            'created_at',
+            'updated_at',
+            'is_helpful',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+
+    def to_representation(self, instance):
+        """Convert topic_tags to a list for output."""
+        ret = super().to_representation(instance)
+        ret['topic_tags'] = instance.get_topic_tags_list()
+        return ret
+
+    def to_internal_value(self, data):
+        """Convert topic_tags from list to comma-separated string for input."""
+        tags = data.get('topic_tags')
+        if tags is not None and isinstance(tags, list):
+            data = data.copy()
+            data['topic_tags'] = ','.join(tags)
+        return super().to_internal_value(data)
+    
+
+class SystemDesignAIResponseSerializer(serializers.ModelSerializer):
+    topic_tags = serializers.ListField(
+        child=serializers.CharField(),
+        source='get_topic_tags_list',
+        write_only=False,
+        required=False
+    )
+    user = serializers.StringRelatedField(read_only=True)  # Shows username or __str__ of user
+
+    class Meta:
+        model = SystemDesignAIResponse
+        fields = [
+            'id',
+            'user',
+            'question',
+            'response',
+            'topic_tags',
+            'system_scale',
+            'system_type',
+            'focus_area',
+            'is_interview_prep',
+            'company_context',
+            'created_at',
+            'updated_at',
+            'is_helpful',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+
+    def to_representation(self, instance):
+        """Convert topic_tags to a list for output."""
+        ret = super().to_representation(instance)
+        ret['topic_tags'] = instance.get_topic_tags_list()
+        return ret
+
+    def to_internal_value(self, data):
+        """Convert topic_tags from list to comma-separated string for input."""
+        tags = data.get('topic_tags')
+        if tags is not None and isinstance(tags, list):
+            data = data.copy()
+            data['topic_tags'] = ','.join(tags)
+        return super().to_internal_value(data)
+    
+
+class JobSearchAIResponseSerializer(serializers.ModelSerializer):
+    topic_tags = serializers.ListField(
+        child=serializers.CharField(),
+        source='get_topic_tags_list',
+        write_only=False,
+        required=False
+    )
+    user = serializers.StringRelatedField(read_only=True)  # Shows username or __str__ of user
+
+    class Meta:
+        model = JobSearchAIResponse
+        fields = [
+            'id',
+            'user',
+            'question',
+            'response',
+            'topic_tags',
+            'category',
+            'experience_level',
+            'target_role',
+            'interview_type',
+            'company_size',
+            'is_urgent',
+            'created_at',
+            'updated_at',
+            'is_helpful',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+
+    def to_representation(self, instance):
+        """Convert topic_tags to a list for output."""
+        ret = super().to_representation(instance)
+        ret['topic_tags'] = instance.get_topic_tags_list()
+        return ret
+
+    def to_internal_value(self, data):
+        """Convert topic_tags from list to comma-separated string for input."""
+        tags = data.get('topic_tags')
+        if tags is not None and isinstance(tags, list):
+            data = data.copy()
+            data['topic_tags'] = ','.join(tags)
+        return super().to_internal_value(data)
     
