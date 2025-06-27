@@ -6,16 +6,13 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
-from .models import CustomUser,Task, Goal, AISummary
-from .serializers import UserSerializer, LoginSerializer, GoalSerializer, TaskSerializer, AISummarySerializer
+from .models import CustomUser,Task, Goal, DSAAIResponse, SoftwareDevAIResponse, SystemDesignAIResponse, JobSearchAIResponse
+from .serializers import UserSerializer, LoginSerializer, GoalSerializer, TaskSerializer, DSAAIResponseSerializer, SoftwareDevAIResponseSerializer, SystemDesignAIResponseSerializer, JobSearchAIResponseSerializer
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.conf import settings
 from django.utils import timezone
-import os
-import tempfile
-import PyPDF2
 import google.generativeai as genai
 
 try:
@@ -298,320 +295,422 @@ class GoalViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AISummaryViewSet(viewsets.ModelViewSet):
+class DSAAIResponseViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for handling AI summaries with custom actions
-    Provides CRUD operations plus custom actions for AI processing
+    ViewSet for handling DSA AI Responses with user scoping and custom actions.
+    Provides CRUD operations plus custom actions for filtering.
     """
-    serializer_class = AISummarySerializer
+    serializer_class = DSAAIResponseSerializer
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
-        """Return summaries for the authenticated user only"""
-        return AISummary.objects.filter(user=self.request.user)
+        """Return DSA responses for the authenticated user only"""
+        return DSAAIResponse.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        """Ensure the summary is associated with the current user"""
+        """Ensure the response is associated with the current user"""
         serializer.save(user=self.request.user)
 
 
     @action(detail=False, methods=['post'])
-    def generate_summary(self, request):
+    def generate_response(self, request):
         """
-        Generate AI summary from text
-        POST /api/summaries/generate_summary/
-        
-        Expected payload:
-        {
-            "text": "Text to summarize",
-            "source_type": "text" // optional, defaults to "text"
-        }
+        Generate a DSA AI response using Gemini.
+        POST /api/dsa-ai-responses/generate_response/
         """
-        text = request.data.get('text')
-        source_type = request.data.get('source_type', 'text')
-        
-        if not text:
-            return Response(
-                {'error': 'No text provided'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        question = request.data.get('question')
+        topic_tags = request.data.get('topic_tags', '')
+        difficulty = request.data.get('difficulty', 'unknown')
+        problem_source = request.data.get('problem_source', '')
+        problem_id = request.data.get('problem_id', '')
 
-        if len(text.strip()) < 50:
-            return Response(
-                {'error': 'Text too short. Please provide at least 50 characters.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if not question or len(question.strip()) < 10:
+            return Response({'error': 'A valid DSA question is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Initialize the Gemini Model
-            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
-
-            # Create a clear prompt for Gemini
+            # Compose prompt for Gemini
             prompt = (
-                "You are a helpful study assistant. Create a concise and well-structured summary of the provided text. "
-                "Focus on key concepts, main ideas, and important details. "
-                "Format the summary with clear sections and bullet points where appropriate. Make it suitable for study purposes.\n\n"
-                f"Please summarize this {source_type} content:\n\n{text}"
+                "You are an expert DSA tutor. Provide a clear, step-by-step solution to the following problem, "
+                "including code and explanations where appropriate.\n\n"
+                f"Question: {question}"
             )
-            
-            # Generate summary using Gemini
+            # Call Gemini API (replace with your actual call)
+            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
             response = model.generate_content(prompt)
-            summary_content = response.text
+            ai_response = response.text
 
-            # Create summary object
-            summary_obj = AISummary.objects.create(
+            # Save to DB
+            dsa_obj = DSAAIResponse.objects.create(
                 user=request.user,
-                title=f"Summary {timezone.now().strftime('%Y-%m-%d %H:%M')}",
-                content=summary_content,
-                source_type=source_type,
-                source_content=text[:5000]  # Store first 5000 chars
+                question=question,
+                response=ai_response,
+                topic_tags=topic_tags,
+                difficulty=difficulty,
+                problem_source=problem_source,
+                problem_id=problem_id,
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
             )
-
-            # Serialize the created object
-            serializer = self.get_serializer(summary_obj)
-
+            serializer = self.get_serializer(dsa_obj)
             return Response({
-                'message': 'Summary generated successfully',
-                'summary': summary_content,
-                'id': summary_obj.id,
-                'title': summary_obj.title,
+                'message': 'DSA response generated successfully',
+                'response': ai_response,
                 'data': serializer.data
             }, status=status.HTTP_201_CREATED)
-
         except Exception as e:
+            return Response({'error': f'AI model error: {str(e)}'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+    @action(detail=False, methods=['get'])
+    def by_difficulty(self, request):
+        """
+        Get DSA responses filtered by difficulty.
+        GET /api/dsa-ai-responses/by_difficulty/?difficulty=easy|medium|hard|unknown
+        """
+        difficulty = request.query_params.get('difficulty')
+        if not difficulty:
             return Response(
-                {'error': f'Google Gemini API error or internal failure: {str(e)}'},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                {'error': 'Difficulty parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
             )
+        if difficulty not in dict(DSAAIResponse.DIFFICULTY_CHOICES):
+            return Response(
+                {'error': f'Invalid difficulty. Must be one of: {", ".join(dict(DSAAIResponse.DIFFICULTY_CHOICES).keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        filtered = self.get_queryset().filter(difficulty=difficulty)
+        serializer = self.get_serializer(filtered, many=True)
+        return Response({
+            'count': len(filtered),
+            'difficulty': difficulty,
+            'results': serializer.data
+        })
+
+    @action(detail=False, methods=['get'])
+    def by_topic(self, request):
+        """
+        Get DSA responses filtered by topic tag.
+        GET /api/dsa-ai-responses/by_topic/?tag=arrays
+        """
+        tag = request.query_params.get('tag')
+        if not tag:
+            return Response(
+                {'error': 'Tag parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        filtered = [resp for resp in self.get_queryset() if tag in resp.get_topic_tags_list()]
+        serializer = self.get_serializer(filtered, many=True)
+        return Response({
+            'count': len(filtered),
+            'tag': tag,
+            'results': serializer.data
+        })
+
+class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling Software Development AI Responses with user scoping and custom actions.
+    Provides CRUD operations plus custom actions for filtering and AI generation.
+    """
+    serializer_class = SoftwareDevAIResponseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        """Return dev responses for the authenticated user only"""
+        return SoftwareDevAIResponse.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        """Ensure the response is associated with the current user"""
+        serializer.save(user=self.request.user)
 
     @action(detail=False, methods=['post'])
-    def upload_pdf(self, request):
+    def generate_response(self, request):
         """
-        Handle PDF file upload and processing
-        POST /api/summaries/upload_pdf/
-        
-        Expected: multipart/form-data with 'file' field containing PDF
+        Generate a Software Dev AI response using Gemini.
+        POST /api/software-dev-ai-responses/generate_response/
         """
-        if 'file' not in request.FILES:
-            return Response(
-                {'error': 'No file provided'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        question = request.data.get('question')
+        topic_tags = request.data.get('topic_tags', '')
+        tech_stack = request.data.get('tech_stack', 'other')
+        programming_language = request.data.get('programming_language', '')
+        framework = request.data.get('framework', '')
+        question_type = request.data.get('question_type', 'other')
 
-        file = request.FILES['file']
-        
-        # Validate file type
-        if not file.name.lower().endswith('.pdf'):
-            return Response(
-                {'error': 'Only PDF files are allowed'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Validate file size (max 10MB)
-        if file.size > 10 * 1024 * 1024:
-            return Response(
-                {'error': 'File size too large. Maximum size is 10MB.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if not question or len(question.strip()) < 10:
+            return Response({'error': 'A valid development question is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Extract text from PDF
-            text_content = self._extract_text_from_pdf(file)
-            
-            if not text_content.strip():
-                return Response(
-                    {'error': 'Could not extract text from PDF. Please ensure the PDF contains readable text.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            if len(text_content.strip()) < 100:
-                return Response(
-                    {'error': 'PDF content too short for meaningful summarization.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Initialize the Gemini Model
-            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
-
-            # Create a clear prompt for Gemini, limiting input size
             prompt = (
-                "You are a helpful study assistant. Create a comprehensive and well-structured summary of the provided PDF content. "
-                "Focus on key concepts, main ideas, and important details. "
-                "Format the summary with clear sections and bullet points where appropriate. Make it suitable for study purposes.\n\n"
-                f"Please summarize this PDF content:\n\n{text_content[:20000]}" # Limit input to avoid API errors
+                "You are an expert software developer. Provide a clear, step-by-step solution to the following question, "
+                "including code, best practices, and explanations where appropriate.\n\n"
+                f"Question: {question}"
             )
-            
-            # Generate summary using Gemini
+            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
             response = model.generate_content(prompt)
-            summary_content = response.text
+            ai_response = response.text
 
-            # Create summary object
-            summary_obj = AISummary.objects.create(
+            dev_obj = SoftwareDevAIResponse.objects.create(
                 user=request.user,
-                title=f"Summary of {file.name}",
-                content=summary_content,
-                source_type='pdf',
-                source_content=text_content[:5000]  # Store first 5000 chars of original content
+                question=question,
+                response=ai_response,
+                topic_tags=topic_tags,
+                tech_stack=tech_stack,
+                programming_language=programming_language,
+                framework=framework,
+                question_type=question_type,
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
             )
-
-            # Serialize the created object
-            serializer = self.get_serializer(summary_obj)
-
+            serializer = self.get_serializer(dev_obj)
             return Response({
-                'message': 'PDF processed successfully',
-                'summary': summary_content,
-                'id': summary_obj.id,
-                'title': summary_obj.title,
-                'filename': file.name,
+                'message': 'Development response generated successfully',
+                'response': ai_response,
                 'data': serializer.data
             }, status=status.HTTP_201_CREATED)
-
         except Exception as e:
-            return Response(
-                {'error': f'Failed to process PDF: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({'error': f'AI model error: {str(e)}'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    @action(detail=True, methods=['post'])
-    def regenerate(self, request, pk=None):
+    @action(detail=False, methods=['get'])
+    def by_tech_stack(self, request):
         """
-        Regenerate summary for an existing summary object
-        POST /api/summaries/{id}/regenerate/
+        Get responses filtered by tech_stack.
+        GET /api/software-dev-ai-responses/by_tech_stack/?tech_stack=frontend|backend|fullstack|mobile|devops|database|other
         """
-        summary = self.get_object()
-        
-        if not summary.source_content:
+        tech_stack = request.query_params.get('tech_stack')
+        if not tech_stack:
             return Response(
-                {'error': 'No source content available for regeneration'},
+                {'error': 'tech_stack parameter is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        valid_choices = dict(SoftwareDevAIResponse.TECH_STACK_CHOICES)
+        if tech_stack not in valid_choices:
+            return Response(
+                {'error': f'Invalid tech_stack. Must be one of: {', '.join(valid_choices.keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        filtered = self.get_queryset().filter(tech_stack=tech_stack)
+        serializer = self.get_serializer(filtered, many=True)
+        return Response({
+            'count': len(filtered),
+            'tech_stack': tech_stack,
+            'results': serializer.data
+        })
+
+    @action(detail=False, methods=['get'])
+    def by_topic(self, request):
+        """
+        Get responses filtered by topic tag.
+        GET /api/software-dev-ai-responses/by_topic/?tag=react
+        """
+        tag = request.query_params.get('tag')
+        if not tag:
+            return Response(
+                {'error': 'Tag parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        filtered = [resp for resp in self.get_queryset() if tag in resp.get_topic_tags_list()]
+        serializer = self.get_serializer(filtered, many=True)
+        return Response({
+            'count': len(filtered),
+            'tag': tag,
+            'results': serializer.data
+        })
+
+class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling System Design AI Responses with user scoping and custom actions.
+    Provides CRUD operations plus custom actions for filtering and AI generation.
+    """
+    serializer_class = SystemDesignAIResponseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        return SystemDesignAIResponse.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def generate_response(self, request):
+        question = request.data.get('question')
+        topic_tags = request.data.get('topic_tags', '')
+        system_scale = request.data.get('system_scale', 'unknown')
+        system_type = request.data.get('system_type', 'other')
+        focus_area = request.data.get('focus_area', 'architecture')
+        is_interview_prep = request.data.get('is_interview_prep', False)
+        company_context = request.data.get('company_context', '')
+
+        if not question or len(question.strip()) < 10:
+            return Response({'error': 'A valid system design question is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Initialize Gemini Model
-            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
-
-             # Create a fresh prompt for Gemini
             prompt = (
-                "You are a helpful study assistant. Create a fresh, concise and well-structured summary of the provided content. "
-                "Focus on key concepts, main ideas, and important details. "
-                "Format the summary with clear sections and bullet points where appropriate.\n\n"
-                f"Please create a new summary of this {summary.source_type} content:\n\n{summary.source_content}"
+                "You are an expert system designer. Provide a clear, high-level design and step-by-step explanation for the following system design question. "
+                "Include architecture diagrams (as text), technology choices, and best practices where appropriate.\n\n"
+                f"Question: {question}"
             )
-            
-            # Configure a slightly different generation for variation
-            generation_config = genai.types.GenerationConfig(temperature=0.8)
+            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
+            response = model.generate_content(prompt)
+            ai_response = response.text
 
-            # Generate new summary using Gemini
-            response = model.generate_content(prompt, generation_config=generation_config)
-            new_summary_content = response.text
-
-            # Update the summary
-            summary.content = new_summary_content
-            summary.updated_at = timezone.now()
-            summary.save()
-
-            # Serialize the updated object
-            serializer = self.get_serializer(summary)
-
+            obj = SystemDesignAIResponse.objects.create(
+                user=request.user,
+                question=question,
+                response=ai_response,
+                topic_tags=topic_tags,
+                system_scale=system_scale,
+                system_type=system_type,
+                focus_area=focus_area,
+                is_interview_prep=is_interview_prep,
+                company_context=company_context,
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
+            serializer = self.get_serializer(obj)
             return Response({
-                'message': 'Summary regenerated successfully',
-                'summary': new_summary_content,
+                'message': 'System design response generated successfully',
+                'response': ai_response,
                 'data': serializer.data
-            }, status=status.HTTP_200_OK)
-
+            }, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response(
-                {'error': f'Google Gemini API error or internal failure: {str(e)}'},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
-            )
+            return Response({'error': f'AI model error: {str(e)}'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
     @action(detail=False, methods=['get'])
-    def recent(self, request):
-        """
-        Get recent summaries (last 10)
-        GET /api/summaries/recent/
-        """
-        recent_summaries = self.get_queryset()[:10]
-        serializer = self.get_serializer(recent_summaries, many=True)
+    def by_system_type(self, request):
+        system_type = request.query_params.get('system_type')
+        if not system_type:
+            return Response(
+                {'error': 'system_type parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        valid_choices = dict(SystemDesignAIResponse.SYSTEM_TYPE_CHOICES)
+        if system_type not in valid_choices:
+            return Response(
+                {'error': f'Invalid system_type. Must be one of: {', '.join(valid_choices.keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        filtered = self.get_queryset().filter(system_type=system_type)
+        serializer = self.get_serializer(filtered, many=True)
         return Response({
-            'count': len(recent_summaries),
+            'count': len(filtered),
+            'system_type': system_type,
             'results': serializer.data
         })
 
     @action(detail=False, methods=['get'])
-    def by_type(self, request):
-        """
-        Get summaries filtered by source type
-        GET /api/summaries/by_type/?type=text|pdf
-        """
-        source_type = request.query_params.get('type')
-        if not source_type:
+    def by_topic(self, request):
+        tag = request.query_params.get('tag')
+        if not tag:
             return Response(
-                {'error': 'Type parameter is required'},
+                {'error': 'Tag parameter is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        if source_type not in ['text', 'pdf']:
-            return Response(
-                {'error': 'Type must be either "text" or "pdf"'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        filtered_summaries = self.get_queryset().filter(source_type=source_type)
-        serializer = self.get_serializer(filtered_summaries, many=True)
-        
+        filtered = [resp for resp in self.get_queryset() if tag in resp.get_topic_tags_list()]
+        serializer = self.get_serializer(filtered, many=True)
         return Response({
-            'count': len(filtered_summaries),
-            'type': source_type,
+            'count': len(filtered),
+            'tag': tag,
             'results': serializer.data
         })
 
-    @action(detail=False, methods=['delete'])
-    def delete_all(self, request):
-        """
-        Delete all summaries for the current user
-        DELETE /api/summaries/delete_all/
-        """
-        count = self.get_queryset().count()
-        self.get_queryset().delete()
-        
-        return Response({
-            'message': f'Successfully deleted {count} summaries',
-            'deleted_count': count
-        }, status=status.HTTP_200_OK)
+class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for handling Job Search AI Responses with user scoping and custom actions.
+    Provides CRUD operations plus custom actions for filtering and AI generation.
+    """
+    serializer_class = JobSearchAIResponseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
-    def _extract_text_from_pdf(self, file):
-        """Extract text content from uploaded PDF file"""
+    def get_queryset(self):
+        return JobSearchAIResponse.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def generate_response(self, request):
+        question = request.data.get('question')
+        topic_tags = request.data.get('topic_tags', '')
+        category = request.data.get('category', 'other')
+        experience_level = request.data.get('experience_level', '')
+        target_role = request.data.get('target_role', '')
+        interview_type = request.data.get('interview_type', '')
+        company_size = request.data.get('company_size', '')
+        is_urgent = request.data.get('is_urgent', False)
+
+        if not question or len(question.strip()) < 10:
+            return Response({'error': 'A valid job search question is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            # Create a temporary file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-                # Write the uploaded file content to temp file
-                for chunk in file.chunks():
-                    temp_file.write(chunk)
-                temp_file_path = temp_file.name
+            prompt = (
+                "You are a career coach and job search expert. Provide a clear, actionable answer to the following question, "
+                "including tips, resources, and best practices where appropriate.\n\n"
+                f"Question: {question}"
+            )
+            model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
+            response = model.generate_content(prompt)
+            ai_response = response.text
 
-            # Extract text using PyPDF2
-            text_content = ""
-            with open(temp_file_path, 'rb') as pdf_file:
-                pdf_reader = PyPDF2.PdfReader(pdf_file)
-                
-                for page_num in range(len(pdf_reader.pages)):
-                    page = pdf_reader.pages[page_num]
-                    page_text = page.extract_text()
-                    if page_text:
-                        text_content += f"--- Page {page_num + 1} ---\n{page_text}\n\n"
-
-            # Clean up temp file
-            os.unlink(temp_file_path)
-            
-            return text_content.strip()
-
+            obj = JobSearchAIResponse.objects.create(
+                user=request.user,
+                question=question,
+                response=ai_response,
+                topic_tags=topic_tags,
+                category=category,
+                experience_level=experience_level,
+                target_role=target_role,
+                interview_type=interview_type,
+                company_size=company_size,
+                is_urgent=is_urgent,
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
+            serializer = self.get_serializer(obj)
+            return Response({
+                'message': 'Job search response generated successfully',
+                'response': ai_response,
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
         except Exception as e:
-            # Clean up temp file if it exists
-            if 'temp_file_path' in locals():
-                try:
-                    os.unlink(temp_file_path)
-                except:
-                    pass
-            raise Exception(f"Error extracting text from PDF: {str(e)}")
+            return Response({'error': f'AI model error: {str(e)}'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    @action(detail=False, methods=['get'])
+    def by_category(self, request):
+        category = request.query_params.get('category')
+        if not category:
+            return Response(
+                {'error': 'category parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        valid_choices = dict(JobSearchAIResponse.CATEGORY_CHOICES)
+        if category not in valid_choices:
+            return Response(
+                {'error': f'Invalid category. Must be one of: {', '.join(valid_choices.keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        filtered = self.get_queryset().filter(category=category)
+        serializer = self.get_serializer(filtered, many=True)
+        return Response({
+            'count': len(filtered),
+            'category': category,
+            'results': serializer.data
+        })
+
+    @action(detail=False, methods=['get'])
+    def by_topic(self, request):
+        tag = request.query_params.get('tag')
+        if not tag:
+            return Response(
+                {'error': 'Tag parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        filtered = [resp for resp in self.get_queryset() if tag in resp.get_topic_tags_list()]
+        serializer = self.get_serializer(filtered, many=True)
+        return Response({
+            'count': len(filtered),
+            'tag': tag,
+            'results': serializer.data
+        })
