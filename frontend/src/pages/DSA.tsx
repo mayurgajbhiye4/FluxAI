@@ -23,6 +23,46 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 
+// CSRF and Auth helpers (copied from Assistant.tsx)
+const getAuthToken = () => {
+  return localStorage.getItem('authToken') || '';
+};
+
+const getCSRFTokenFromCookie = () => {
+  const name = 'csrftoken';
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+};
+const fetchCSRFToken = async () => {
+  try {
+    const response = await fetch('/api/csrf_token/', {
+      method: 'GET',
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch CSRF token');
+    const data = await response.json();
+    return data.csrfToken;
+  } catch (error) {
+    console.error('Error fetching CSRF token:', error);
+    throw error;
+  }
+};
+const getCSRFToken = async () => {
+  const cookieToken = getCSRFTokenFromCookie();
+  if (cookieToken) return cookieToken;
+  return await fetchCSRFToken();
+};
+
 const DSA = () => {
   const { 
     getTasksByCategory, 
@@ -81,16 +121,32 @@ const DSA = () => {
     if (!aiQuestion.trim()) return;
 
     setIsGenerating(true);
-    
+    setAiResponse("");
+    setHasResponse(false);
+
     try {
-      // Simulate API call to AI service
-      // Replace this with your actual AI API call
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulated delay
-      
-      // Mock response - replace with actual AI response
-      const mockResponse = `Here's some help with your DSA question: "${aiQuestion}"\n\nThis is a common problem in data structures and algorithms. Here are some key points to consider:\n\n• Start by understanding the problem constraints\n• Consider the time and space complexity requirements\n• Think about which data structure would be most efficient\n• Practice similar problems to build pattern recognition\n\nWould you like me to elaborate on any specific aspect?`;
-      
-      setAiResponse(mockResponse);
+      const csrfToken = await getCSRFToken();
+      const response = await fetch('/api/dsa-ai-responses/generate_response/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAuthToken()}`,
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          question: aiQuestion,
+          // Optionally add topic_tags, difficulty, etc.
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        setAiResponse(errorData.error || 'Sorry, something went wrong.');
+        setHasResponse(true);
+        return;
+      }
+      const data = await response.json();
+      setAiResponse(data.response || 'No response from AI.');
       setHasResponse(true);
     } catch (error) {
       setAiResponse('Sorry, I encountered an error. Please try again.');

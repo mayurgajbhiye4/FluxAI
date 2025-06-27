@@ -5,6 +5,11 @@ from .models import *
 admin.site.register(CustomUser) 
 admin.site.register(Task) 
 
+admin.site.register(DSAAIResponse) 
+admin.site.register(SoftwareDevAIResponse) 
+admin.site.register(SystemDesignAIResponse) 
+admin.site.register(JobSearchAIResponse) 
+
 
 @admin.register(Goal)
 class GoalAdmin(admin.ModelAdmin):

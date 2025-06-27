@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bot, FileText, Trash2, Download, RefreshCw } from 'lucide-react';
 import PageTransition from '@/components/layout/PageTransition';
-import AIAssistant from '@/components/ui-custom/AIAssistant';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,32 +9,53 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 
-interface Summary { 
+const CATEGORY_MAP = {
+  dsa: {
+    label: 'DSA',
+    endpoint: '/api/dsa-ai-responses/',
+  },
+  development: {
+    label: 'Development',
+    endpoint: '/api/software-dev-ai-responses/',
+  },
+  system_design: {
+    label: 'System Design',
+    endpoint: '/api/system-design-ai-responses/',
+  },
+  job_search: {
+    label: 'Job Search',
+    endpoint: '/api/job-search-ai-responses/',
+  },
+};
+
+type CategoryKey = keyof typeof CATEGORY_MAP;
+
+interface AIResponse {
   id: string;
-  title: string;
-  content: string;
-  source_type: 'text' | 'pdf';
+  question: string;
+  response: string;
+  topic_tags?: string[];
   created_at: string;
   updated_at: string;
+  [key: string]: any;
 }
 
 const Assistant = () => {
-  const [summaries, setSummaries] = useState<Summary[]>([]);
-  const [selectedSummary, setSelectedSummary] = useState<string | null>(null);
+  const [category, setCategory] = useState<CategoryKey>('dsa');
+  const [responses, setResponses] = useState<AIResponse[]>([]);
+  const [selectedResponse, setSelectedResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [filterType, setFilterType] = useState<'all' | 'text' | 'pdf'>('all');
+  const [filter, setFilter] = useState<string>('all');
   const { toast } = useToast();
 
   const getAuthToken = () => {
     return localStorage.getItem('authToken') || '';
   };
 
-
-  // Get CSRF token from cookie
+  // CSRF logic (unchanged)
   const getCSRFTokenFromCookie = () => {
     const name = 'csrftoken';
     let cookieValue = null;
-    
     if (document.cookie && document.cookie !== '') {
       const cookies = document.cookie.split(';');
       for (let i = 0; i < cookies.length; i++) {
@@ -46,21 +66,15 @@ const Assistant = () => {
         }
       }
     }
-    
     return cookieValue;
   };
-
-
-  // Fetch CSRF token from server
   const fetchCSRFToken = async () => {
     try {
       const response = await fetch('/api/csrf_token/', {
         method: 'GET',
         credentials: 'include',
       });
-      if (!response.ok) {
-        throw new Error('Failed to fetch CSRF token');
-      }
+      if (!response.ok) throw new Error('Failed to fetch CSRF token');
       const data = await response.json();
       return data.csrfToken;
     } catch (error) {
@@ -68,103 +82,46 @@ const Assistant = () => {
       throw error;
     }
   };
-
-
-  // Get CSRF token (try cookie first, then fetch from server)
   const getCSRFToken = async () => {
     const cookieToken = getCSRFTokenFromCookie();
-    if (cookieToken) {
-      return cookieToken;
-    }
+    if (cookieToken) return cookieToken;
     return await fetchCSRFToken();
   };
 
-  const fetchSummaries = async () => {
+  // Fetch responses for the selected category
+  const fetchResponses = async (cat: CategoryKey = category, filterValue: string = filter) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/summaries/', {
+      let url = CATEGORY_MAP[cat].endpoint;
+      let params = '';
+      if (filterValue && filterValue !== 'all') {
+        if (cat === 'dsa') params = `/by_difficulty/?difficulty=${filterValue}`;
+        else if (cat === 'development') params = `/by_tech_stack/?tech_stack=${filterValue}`;
+        else if (cat === 'system_design') params = `/by_system_type/?system_type=${filterValue}`;
+        else if (cat === 'job_search') params = `/by_category/?category=${filterValue}`;
+        url += params;
+      }
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
         },
         credentials: 'include',
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch summaries');
-      }
-
+      if (!response.ok) throw new Error('Failed to fetch responses');
       const data = await response.json();
-      setSummaries(data.results || data);
+      setResponses(data.results || data);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to fetch summaries',
-        duration: 2000,
-      });
+      toast({ title: 'Error', description: error.message || 'Failed to fetch responses', duration: 2000 });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchSummariesByType = async (type: 'text' | 'pdf') => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/summaries/by_type/?type=${type}`, {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch summaries');
-      }
-
-      const data = await response.json();
-      setSummaries(data.results || []);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to fetch summaries',
-        duration: 2000,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchRecentSummaries = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/summaries/recent/', {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch recent summaries');
-      }
-
-      const data = await response.json();
-      setSummaries(data.results || []);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to fetch recent summaries',
-        duration: 2000,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const deleteSummary = async (id: string) => {
+  // Delete a response
+  const deleteResponse = async (id: string) => {
     try {
       const csrfToken = await getCSRFToken();
-
-      const response = await fetch(`/api/summaries/${id}/`, {
+      const response = await fetch(`${CATEGORY_MAP[category].endpoint}${id}/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
@@ -172,69 +129,20 @@ const Assistant = () => {
         },
         credentials: 'include',
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete summary');
-      }
-
-      setSummaries(prev => prev.filter(summary => summary.id !== id));
-      
-      if (selectedSummary === id) {
-        setSelectedSummary(null);
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Summary deleted successfully',
-      });
+      if (!response.ok) throw new Error('Failed to delete response');
+      setResponses(prev => prev.filter(r => r.id !== id));
+      if (selectedResponse === id) setSelectedResponse(null);
+      toast({ title: 'Success', description: 'Response deleted successfully' });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete summary',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: error.message || 'Failed to delete response', variant: 'destructive' });
     }
   };
 
-  const deleteAllSummaries = async () => {
+  // Regenerate a response
+  const regenerateResponse = async (id: string) => {
     try {
       const csrfToken = await getCSRFToken();
-
-      const response = await fetch('/api/summaries/delete_all/', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete all summaries');
-      }
-
-      const data = await response.json();
-      setSummaries([]);
-      setSelectedSummary(null);
-
-      toast({
-        title: 'Success',
-        description: data.message,
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete all summaries',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const regenerateSummary = async (id: string) => {
-    try {
-      const csrfToken = await getCSRFToken();
-
-      const response = await fetch(`/api/summaries/${id}/regenerate/`, {
+      const response = await fetch(`${CATEGORY_MAP[category].endpoint}${id}/regenerate/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
@@ -242,63 +150,45 @@ const Assistant = () => {
         },
         credentials: 'include',
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to regenerate summary');
-      }
-
+      if (!response.ok) throw new Error('Failed to regenerate response');
       const data = await response.json();
-      
-      // Update the summary in the list
-      setSummaries(prev => 
-        prev.map(summary => 
-          summary.id === id 
-            ? { ...summary, content: data.summary, updated_at: new Date().toISOString() }
-            : summary
-        )
-      );
-
-      toast({
-        title: 'Success',
-        description: data.message,
-      });
+      setResponses(prev => prev.map(r => r.id === id ? { ...r, response: data.response, updated_at: new Date().toISOString() } : r));
+      toast({ title: 'Success', description: data.message });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to regenerate summary',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: error.message || 'Failed to regenerate response', variant: 'destructive' });
     }
   };
 
-  const downloadSummary = (summary: Summary) => {
+  // Download a response
+  const downloadResponse = (response: AIResponse) => {
     const element = document.createElement('a');
-    const file = new Blob([summary.content], { type: 'text/plain' });
+    const file = new Blob([response.response], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = `${summary.title}.txt`;
+    element.download = `AI_Response_${response.id}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
   };
 
-  const handleSaveSummary = (title: string, content: string, id: string) => {
-    // Summary is already saved by the API, just refresh the list
-    fetchSummaries();
+  // Handle filter change
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
+    fetchResponses(category, value);
   };
 
-  const handleFilterChange = (value: string) => {
-    setFilterType(value as 'all' | 'text' | 'pdf');
-    
-    if (value === 'all') {
-      fetchSummaries();
-    } else {
-      fetchSummariesByType(value as 'text' | 'pdf');
-    }
+  // Handle category change
+  const handleCategoryChange = (value: CategoryKey) => {
+    setCategory(value);
+    setFilter('all');
+    setSelectedResponse(null);
+    setResponses([]);
+    fetchResponses(value, 'all');
   };
 
   useEffect(() => {
-    fetchSummaries();
-  }, []);
+    fetchResponses();
+    // eslint-disable-next-line
+  }, [category]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -308,10 +198,6 @@ const Assistant = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const getSourceTypeColor = (type: string) => {
-    return type === 'pdf' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
   };
 
   return (
@@ -329,39 +215,45 @@ const Assistant = () => {
               Study Assistant
             </h1>
             <p className="text-muted-foreground mt-1">
-              Summarize your notes and study materials with AI.
+              Track your notes and study materials with AI.
             </p>
           </div>
         </div>
-        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <AIAssistant onSave={handleSaveSummary} onRefresh={fetchSummaries} />
-          </div>
-          
-          <div>
-            <Card>
-              <CardHeader className="pb-3">
+          {/* List and filter */}
+          <div className="col-span-2">
+            <Card className="h-[600px] flex flex-col">
+              <CardHeader className="pb-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl flex items-center">
                     <FileText className="mr-2 h-5 w-5" />
-                    Saved Summaries
+                    AI Responses
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    <Select value={filterType} onValueChange={handleFilterChange}>
+                    <Select value={category} onValueChange={handleCategoryChange}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(CATEGORY_MAP).map(([key, val]) => (
+                          <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {/* Example filter: you can expand this for each category */}
+                    <Select value={filter} onValueChange={handleFilterChange}>
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="pdf">PDF</SelectItem>
+                        {/* Add more filter options per category if needed */}
                       </SelectContent>
                     </Select>
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={fetchSummaries}
+                      onClick={() => fetchResponses()}
                       disabled={isLoading}
                     >
                       <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -370,49 +262,32 @@ const Assistant = () => {
                 </div>
                 <CardDescription className="flex items-center justify-between">
                   <span>
-                    {summaries.length} {summaries.length === 1 ? 'summary' : 'summaries'} saved
+                    {responses.length} {responses.length === 1 ? 'response' : 'responses'}
                   </span>
-                  {summaries.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={deleteAllSummaries}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete All
-                    </Button>
-                  )}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {summaries.length > 0 ? (
-                  <div className="space-y-2">
-                    <ScrollArea className="h-[400px] pr-4">
-                      {summaries.map((summary) => (
+              <CardContent className="flex-1 min-h-0 p-4">
+                {responses.length > 0 ? (
+                  <ScrollArea className="h-full pr-4">
+                    <div className="space-y-2">
+                      {responses.map((response) => (
                         <motion.div
-                          key={summary.id}
+                          key={response.id}
                           initial={{ opacity: 0, y: 5 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2 }}
-                          className={`p-3 rounded-lg mb-2 border cursor-pointer transition-all group hover:bg-accent ${
-                            selectedSummary === summary.id ? 'bg-accent border-primary' : ''
+                          className={`p-3 rounded-lg border cursor-pointer transition-all group hover:bg-accent ${
+                            selectedResponse === response.id ? 'bg-accent border-primary' : ''
                           }`}
-                          onClick={() => setSelectedSummary(summary.id)}
+                          onClick={() => setSelectedResponse(response.id)}
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-sm font-medium line-clamp-1">{summary.title}</h3>
-                                <Badge 
-                                  variant="secondary" 
-                                  className={`text-xs ${getSourceTypeColor(summary.source_type)}`}
-                                >
-                                  {summary.source_type.toUpperCase()}
-                                </Badge>
+                                <h3 className="text-sm font-medium line-clamp-1">{response.question?.substring(0, 50) || 'Untitled'}</h3>
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                {formatDate(summary.created_at)}
+                                {formatDate(response.created_at)}
                               </p>
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -422,7 +297,7 @@ const Assistant = () => {
                                 className="h-7 w-7"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  regenerateSummary(summary.id);
+                                  regenerateResponse(response.id);
                                 }}
                               >
                                 <RefreshCw className="h-3 w-3" />
@@ -433,7 +308,7 @@ const Assistant = () => {
                                 className="h-7 w-7"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  downloadSummary(summary);
+                                  downloadResponse(response);
                                 }}
                               >
                                 <Download className="h-3 w-3" />
@@ -444,7 +319,7 @@ const Assistant = () => {
                                 className="h-7 w-7"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteSummary(summary.id);
+                                  deleteResponse(response.id);
                                 }}
                               >
                                 <Trash2 className="h-3 w-3 text-destructive" />
@@ -452,55 +327,50 @@ const Assistant = () => {
                             </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {summary.content.substring(0, 100)}...
+                            {response.response?.substring(0, 100)}...
                           </p>
                         </motion.div>
                       ))}
-                    </ScrollArea>
-                  </div>
+                    </div>
+                  </ScrollArea>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-muted-foreground h-full flex flex-col justify-center">
                     <FileText className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                    <p>No summaries saved yet</p>
-                    <p className="text-sm mt-1">Summarize your notes or PDFs and save them here</p>
+                    <p>No responses found for this category</p>
                   </div>
                 )}
               </CardContent>
             </Card>
-            
-            {selectedSummary && (
+          </div>
+          {/* Sidebar for selected response */}
+          <div className="h-[600px]">
+            {selectedResponse ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="mt-6"
+                className="h-full"
               >
-                <Card>
-                  <CardHeader className="pb-3">
+                <Card className="h-full flex flex-col">
+                  <CardHeader className="pb-3 flex-shrink-0">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">
-                          {summaries.find(s => s.id === selectedSummary)?.title}
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-lg truncate">
+                          {responses.find(r => r.id === selectedResponse)?.question?.substring(0, 50) || 'Untitled'}
                         </CardTitle>
                         <CardDescription className="flex items-center gap-2 mt-1">
                           <span>
-                            {formatDate(summaries.find(s => s.id === selectedSummary)?.created_at || '')}
+                            {formatDate(responses.find(r => r.id === selectedResponse)?.created_at || '')}
                           </span>
-                          <Badge 
-                            variant="secondary" 
-                            className={`text-xs ${getSourceTypeColor(summaries.find(s => s.id === selectedSummary)?.source_type || 'text')}`}
-                          >
-                            {summaries.find(s => s.id === selectedSummary)?.source_type.toUpperCase()}
-                          </Badge>
                         </CardDescription>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const summary = summaries.find(s => s.id === selectedSummary);
-                            if (summary) downloadSummary(summary);
+                            const resp = responses.find(r => r.id === selectedResponse);
+                            if (resp) downloadResponse(resp);
                           }}
                         >
                           <Download className="h-4 w-4" />
@@ -508,22 +378,39 @@ const Assistant = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => regenerateSummary(selectedSummary)}
+                          onClick={() => regenerateResponse(selectedResponse)}
                         >
                           <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteResponse(selectedResponse)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <ScrollArea className="h-[300px]">
-                      <div className="text-sm whitespace-pre-line">
-                        {summaries.find(s => s.id === selectedSummary)?.content}
+                  <CardContent className="flex-1 min-h-0 p-4">
+                    <ScrollArea className="h-full">
+                      <div className="text-sm whitespace-pre-line pr-4">
+                        {responses.find(r => r.id === selectedResponse)?.response}
                       </div>
                     </ScrollArea>
                   </CardContent>
                 </Card>
               </motion.div>
+            ) : (
+              <Card className="h-full flex flex-col justify-center items-center text-center">
+                <CardHeader>
+                  <CardTitle className="text-lg">AI Response Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Select a response from the list to view its details here.</p>
+                  <p className="mt-2 text-xs text-gray-400">You can download, regenerate, or delete a response after selecting it.</p>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>
