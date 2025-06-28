@@ -163,6 +163,18 @@ const JobSearch = () => {
     setHasResponse(false);
   };
 
+  // Handle Enter key for AI textarea
+  const handleAiTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isGenerating) {
+      e.preventDefault();
+      // Manually trigger form submit
+      const form = e.currentTarget.form;
+      if (form) {
+        form.requestSubmit();
+      }
+    }
+  };  
+
   return (
     <PageTransition>
       <div className="max-w-7xl mx-auto px-4 pt-24 pb-16">
@@ -338,6 +350,7 @@ const JobSearch = () => {
                       onChange={(e) => setAiQuestion(e.target.value)}
                       className="min-h-[100px] resize-none"
                       disabled={isGenerating}
+                      onKeyDown={handleAiTextareaKeyDown}
                     />
                     <Button 
                       type="submit" 
