@@ -331,14 +331,23 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
         try:
             # Compose prompt for Gemini
             prompt = (
-                "You are an expert DSA tutor. Provide a clear, step-by-step solution to the following problem, "
-                "including code and explanations where appropriate.\n\n"
+                "You are an expert DSA tutor. Provide a clear, step-by-step solution to the following problem. "
+                "IMPORTANT: Format your response using clean markdown with:\n"
+                "- Use ## for main headings\n"
+                "- Use **bold** for important concepts (NOT asterisks)\n"
+                "- Use ```python for code blocks with syntax highlighting\n"
+                "- Use - for bullet points\n"
+                "- Add proper paragraph spacing\n"
+                "- Do NOT use asterisks (*) anywhere in your response\n"
+                "- Structure your response with clear sections\n"
+                "- Keep formatting simple and clean\n\n"
                 f"Question: {question}"
             )
             # Call Gemini API (replace with your actual call)
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
             response = model.generate_content(prompt)
             ai_response = response.text
+            ai_response = clean_ai_response(ai_response)  # Clean the response
 
             # Save to DB
             dsa_obj = DSAAIResponse.objects.create(
@@ -442,13 +451,21 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
 
         try:
             prompt = (
-                "You are an expert software developer. Provide a clear, step-by-step solution to the following question, "
-                "including code, best practices, and explanations where appropriate.\n\n"
+                "You are an expert software developer. Provide a clear, step-by-step solution to the following question. "
+                "IMPORTANT: Format your response using clean markdown with:\n"
+                "- Use ## for main headings\n"
+                "- Use **bold** for important concepts (NOT asterisks)\n"
+                "- Use ```javascript or ```python for code blocks\n"
+                "- Use - for bullet points\n"
+                "- Add proper paragraph spacing\n"
+                "- Do NOT use asterisks (*) anywhere in your response\n"
+                "- Include best practices and explanations where appropriate\n\n"
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
             response = model.generate_content(prompt)
             ai_response = response.text
+            ai_response = clean_ai_response(ai_response)  # Clean the response
 
             dev_obj = SoftwareDevAIResponse.objects.create(
                 user=request.user,
@@ -547,13 +564,21 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
 
         try:
             prompt = (
-                "You are an expert system designer. Provide a clear, high-level design and step-by-step explanation for the following system design question. "
-                "Include architecture diagrams (as text), technology choices, and best practices where appropriate.\n\n"
+                "You are an expert system designer. Provide a clear, high-level design and step-by-step explanation. "
+                "IMPORTANT: Format your response using clean markdown with:\n"
+                "- Use ## for main headings\n"
+                "- Use **bold** for important concepts (NOT asterisks)\n"
+                "- Use ``` for code examples\n"
+                "- Use - for bullet points\n"
+                "- Add proper paragraph spacing\n"
+                "- Do NOT use asterisks (*) anywhere in your response\n"
+                "- Include architecture diagrams (as text), technology choices, and best practices\n\n"
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
             response = model.generate_content(prompt)
             ai_response = response.text
+            ai_response = clean_ai_response(ai_response)  # Clean the response
 
             obj = SystemDesignAIResponse.objects.create(
                 user=request.user,
@@ -646,13 +671,20 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
 
         try:
             prompt = (
-                "You are a career coach and job search expert. Provide a clear, actionable answer to the following question, "
-                "including tips, resources, and best practices where appropriate.\n\n"
+                "You are a career coach and job search expert. Provide a clear, actionable answer. "
+                "IMPORTANT: Format your response using clean markdown with:\n"
+                "- Use ## for main headings\n"
+                "- Use **bold** for important concepts (NOT asterisks)\n"
+                "- Use - for bullet points\n"
+                "- Add proper paragraph spacing\n"
+                "- Do NOT use asterisks (*) anywhere in your response\n"
+                "- Include tips, resources, and best practices where appropriate\n\n"
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
             response = model.generate_content(prompt)
             ai_response = response.text
+            ai_response = clean_ai_response(ai_response)  # Clean the response
 
             obj = JobSearchAIResponse.objects.create(
                 user=request.user,
@@ -714,3 +746,42 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
             'tag': tag,
             'results': serializer.data
         })
+
+def clean_ai_response(response_text):
+    """
+    Clean and format AI response text
+    """
+    import re
+    
+    # Remove excessive asterisks and convert to proper markdown
+    response_text = re.sub(r'\*{3,}', '**', response_text)  # Convert 3+ asterisks to bold
+    response_text = re.sub(r'\*{2,}', '**', response_text)  # Convert 2+ asterisks to bold
+    
+    # Convert single asterisks to bold (but be careful with code blocks)
+    # First, protect code blocks
+    code_blocks = re.findall(r'```.*?```', response_text, re.DOTALL)
+    for i, block in enumerate(code_blocks):
+        response_text = response_text.replace(block, f'__CODE_BLOCK_{i}__')
+    
+    # Now convert single asterisks to bold
+    response_text = re.sub(r'\*([^*\n]+)\*', r'**\1**', response_text)
+    
+    # Restore code blocks
+    for i, block in enumerate(code_blocks):
+        response_text = response_text.replace(f'__CODE_BLOCK_{i}__', block)
+    
+    # Clean up spacing
+    response_text = re.sub(r'\n{3,}', '\n\n', response_text)  # Remove excessive line breaks
+    response_text = re.sub(r' +', ' ', response_text)  # Remove multiple spaces
+    
+    # Ensure proper markdown formatting
+    response_text = re.sub(r'^\*\*([^*]+)\*\*$', r'## \1', response_text, flags=re.MULTILINE)  # Convert bold lines to headers
+    
+    # Clean up bullet points
+    response_text = re.sub(r'^\*\*   \*\*', '- ', response_text, flags=re.MULTILINE)
+    response_text = re.sub(r'^\*\*   ', '- ', response_text, flags=re.MULTILINE)
+    
+    # Ensure code blocks are properly formatted
+    response_text = re.sub(r'```(\w+)?\n', r'```\1\n', response_text)
+    
+    return response_text.strip()

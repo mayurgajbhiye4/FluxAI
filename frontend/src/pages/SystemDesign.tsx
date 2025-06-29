@@ -8,7 +8,7 @@ import GoalProgress from '@/components/ui-custom/GoalProgress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import ReactMarkdown from 'react-markdown';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -377,8 +377,46 @@ const SystemDesign = () => {
                     </div>
                     
                     <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                      <p className="text-sm font-medium mb-2">AI Response:</p>
-                      <div className="text-sm whitespace-pre-wrap">{aiResponse}</div>
+                      <div className="text-sm prose prose-sm max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            code: ({ className, children, ...props }: any) => {
+                              const match = /language-(\w+)/.exec(className || '');
+                              const isInline = !match;
+                              return !isInline ? (
+                                <pre className="bg-muted p-3 rounded-md overflow-x-auto">
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
+                                </pre>
+                              ) : (
+                                <code className="bg-muted px-1 py-0.5 rounded text-xs" {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            pre: ({ children }: any) => (
+                              <pre className="bg-muted p-3 rounded-md overflow-x-auto whitespace-pre-wrap">
+                                {children}
+                              </pre>
+                            ),
+                            h1: ({ children }: any) => (
+                              <h1 className="text-xl font-bold mt-6 mb-3 first:mt-0">{children}</h1>
+                            ),
+                            h2: ({ children }: any) => (
+                              <h2 className="text-lg font-bold mt-5 mb-2 first:mt-0">{children}</h2>
+                            ),
+                            h3: ({ children }: any) => (
+                              <h3 className="text-base font-bold mt-4 mb-2 first:mt-0">{children}</h3>
+                            ),
+                            strong: ({ children }: any) => (
+                              <strong className="font-bold">{children}</strong>
+                            ),
+                          }}
+                        >
+                          {aiResponse}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                     
                     <Button 
