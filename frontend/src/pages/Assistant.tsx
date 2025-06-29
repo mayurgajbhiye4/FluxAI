@@ -13,18 +13,22 @@ const CATEGORY_MAP = {
   dsa: {
     label: 'DSA',
     endpoint: '/api/dsa-ai-responses/',
+    color: 'border-category-dsa text-category-dsa bg-category-dsa/5',
   },
   development: {
     label: 'Development',
     endpoint: '/api/software-dev-ai-responses/',
+    color: 'border-category-development text-category-development bg-category-development/5',
   },
   system_design: {
     label: 'System Design',
     endpoint: '/api/system-design-ai-responses/',
+    color: 'border-category-systemDesign text-category-systemDesign bg-category-systemDesign/5',
   },
   job_search: {
     label: 'Job Search',
     endpoint: '/api/job-search-ai-responses/',
+    color: 'border-category-jobSearch text-category-jobSearch bg-category-jobSearch/5',
   },
 };
 
@@ -270,67 +274,90 @@ const Assistant = () => {
                 {responses.length > 0 ? (
                   <ScrollArea className="h-full pr-4">
                     <div className="space-y-2">
-                      {responses.map((response) => (
-                        <motion.div
-                          key={response.id}
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all group hover:bg-accent ${
-                            selectedResponse === response.id ? 'bg-accent border-primary' : ''
-                          }`}
-                          onClick={() => setSelectedResponse(response.id)}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-sm font-medium line-clamp-1">{response.question?.substring(0, 50) || 'Untitled'}</h3>
+                      {responses.map((response) => {
+                        // Get the appropriate border color style based on category
+                        const getBorderColorStyle = () => {
+                          switch (category) {
+                            case 'dsa':
+                              return { borderLeftColor: '#3B82F6' };
+                            case 'development':
+                              return { borderLeftColor: '#10B981' };
+                            case 'system_design':
+                              return { borderLeftColor: '#8B5CF6' };
+                            case 'job_search':
+                              return { borderLeftColor: '#F59E0B' };
+                            default:
+                              return {};
+                          }
+                        };
+
+                        return (
+                          <motion.div
+                            key={response.id}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className={`p-3 rounded-lg border-l-4 cursor-pointer transition-all group hover:bg-accent/50 ${
+                              selectedResponse === response.id 
+                                ? 'bg-accent/50' 
+                                : 'border-l-gray-200 dark:border-l-transparent'
+                            }`}
+                            style={selectedResponse === response.id ? getBorderColorStyle() : {}}
+                            onClick={() => setSelectedResponse(response.id)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="text-sm font-medium line-clamp-1">
+                                    {response.question?.substring(0, 50) || 'Untitled'}
+                                  </h3>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatDate(response.created_at)}
+                                </p>
                               </div>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDate(response.created_at)}
-                              </p>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    regenerateResponse(response.id);
+                                  }}
+                                >
+                                  <RefreshCw className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    downloadResponse(response);
+                                  }}
+                                >
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteResponse(response.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  regenerateResponse(response.id);
-                                }}
-                              >
-                                <RefreshCw className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  downloadResponse(response);
-                                }}
-                              >
-                                <Download className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteResponse(response.id);
-                                }}
-                              >
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {response.response?.substring(0, 100)}...
-                          </p>
-                        </motion.div>
-                      ))}
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {response.response?.substring(0, 100)}...
+                            </p>
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   </ScrollArea>
                 ) : (
@@ -393,8 +420,8 @@ const Assistant = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1 min-h-0 p-4">
-                    <ScrollArea className="h-full">
-                      <div className="text-sm whitespace-pre-line pr-4">
+                    <ScrollArea className="h-full w-full">
+                      <div className="text-sm whitespace-pre-wrap pr-4 max-h-full overflow-hidden">
                         {responses.find(r => r.id === selectedResponse)?.response}
                       </div>
                     </ScrollArea>

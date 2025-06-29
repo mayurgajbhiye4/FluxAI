@@ -376,8 +376,8 @@ const DSA = () => {
                       <p className="text-sm text-muted-foreground">{aiQuestion}</p>
                     </div>
                     
-                    <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                      <div className="text-sm prose prose-sm max-w-none">
+                    <div className="p-3 bg-primary/5 rounded-lg border border-primary/20 max-h-[600px]">
+                      <div className="overflow-y-auto max-h-[500px] text-sm prose prose-sm pr-2">
                         <ReactMarkdown
                           components={{
                             code: ({ className, children, ...props }: any) => {
