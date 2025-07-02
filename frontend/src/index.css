@@ -156,3 +156,11 @@
   transform: translateY(-8px);
   transition: opacity 0.3s, transform 0.3s;
 }
+
+.ai-code-block {
+  @apply bg-blue-100 text-black border border-blue-300;
+}
+
+.dark .ai-code-block {
+  @apply bg-zinc-800 text-white border-zinc-500;
+}

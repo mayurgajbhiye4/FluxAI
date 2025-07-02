@@ -384,7 +384,7 @@ const JobSearch = () => {
                               const match = /language-(\w+)/.exec(className || '');
                               const isInline = !match;
                               return !isInline ? (
-                                <pre className="bg-muted p-3 rounded-md overflow-x-auto">
+                                <pre className="ai-code-block p-3 rounded-md overflow-x-auto">
                                   <code className={className} {...props}>
                                     {children}
                                   </code>
