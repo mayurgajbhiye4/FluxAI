@@ -164,3 +164,44 @@
 .dark .ai-code-block {
   @apply bg-zinc-800 text-white border-zinc-500;
 }
+
+.scrollbar-fade {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s;
+}
+
+.scrollbar-fade:hover,
+.scrollbar-fade:active,
+.scrollbar-fade:focus,
+.scrollbar-fade:focus-within {
+  scrollbar-color: hsl(180, 1%, 26%) hsl(0, 0%, 72%);
+  /* thumb and track color */
+}
+
+/* For Webkit browsers */
+.scrollbar-fade::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+  transition: background 0.3s;
+}
+
+.scrollbar-fade:hover::-webkit-scrollbar,
+.scrollbar-fade:active::-webkit-scrollbar,
+.scrollbar-fade:focus::-webkit-scrollbar,
+.scrollbar-fade:focus-within::-webkit-scrollbar {
+  background: hsl(0, 0%, 72%);
+}
+
+.scrollbar-fade::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.scrollbar-fade:hover::-webkit-scrollbar-thumb,
+.scrollbar-fade:active::-webkit-scrollbar-thumb,
+.scrollbar-fade:focus::-webkit-scrollbar-thumb,
+.scrollbar-fade:focus-within::-webkit-scrollbar-thumb {
+  background: hsl(0, 0%, 72%);
+}
