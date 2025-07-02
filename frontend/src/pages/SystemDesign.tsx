@@ -235,7 +235,7 @@ const SystemDesign = () => {
                   </TabsList>
                   
                   <TabsContent value="incomplete" className="mt-0">
-                    <div className="space-y-1">
+                    <div className="space-y-1 max-h-[500px] overflow-y-auto">
                       {incompleteTasks.length > 0 ? (
                         incompleteTasks.map(task => (
                           <TaskItem
@@ -256,7 +256,7 @@ const SystemDesign = () => {
                   </TabsContent>
                   
                   <TabsContent value="completed" className="mt-0">
-                    <div className="space-y-1">
+                    <div className="space-y-1 max-h-[500px] overflow-y-auto">
                       {completedTasks.length > 0 ? (
                         completedTasks.map(task => (
                           <TaskItem
