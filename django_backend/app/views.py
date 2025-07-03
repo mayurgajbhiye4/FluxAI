@@ -329,12 +329,25 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
             return Response({'error': 'A valid DSA question is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Fetch user's DSA tasks
+            user_tasks = Task.objects.filter(user=request.user, category='dsa')
+            if user_tasks.exists():
+                tasks_summary = "\n".join([
+                    f"- {task.title} | {'Completed' if task.completed else 'Incomplete'}"
+                    f" | Due: {task.due_date if task.due_date else 'N/A'}"
+                    f"\n  {task.description[:100]}{'...' if len(task.description) > 100 else ''}"
+                    for task in user_tasks
+                ])
+                tasks_section = f"User's DSA Tasks:\n{tasks_summary}\n\n"
+            else:
+                tasks_section = "User has no DSA tasks.\n\n"
+
             # Compose prompt for Gemini
             prompt = (
+                f"{tasks_section}"
                 "You are a DSA Expert with 10+ years of experience in competitive programming and technical interviews. "
                 "Your expertise includes advanced algorithms and data structures, time/space complexity analysis, "
                 "problem-solving patterns and techniques, optimization strategies, and code implementation in multiple languages.\n\n"
-                
                 "When responding, you must:\n"
                 "- Always analyze time and space complexity\n"
                 "- Explain the intuition behind the approach\n"
@@ -342,7 +355,6 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
                 "- Include visual representations or step-by-step walkthroughs\n"
                 "- Mention relevant patterns (sliding window, two pointers, etc.)\n"
                 "- Connect problems to real-world applications\n\n"
-                
                 "FORMATTING REQUIREMENTS - Format your response using clean markdown with:\n"
                 "- Use ## for main headings\n"
                 "- Use **bold** for important concepts (NOT asterisks)\n"
@@ -352,7 +364,6 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Structure your response with clear sections\n"
                 "- Keep formatting simple and clean\n\n"
-                
                 "Structure your response with these sections:\n"
                 "1. ## Problem Understanding\n"
                 "2. ## Approach and Intuition\n"
@@ -360,7 +371,6 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
                 "4. ## Complexity Analysis\n"
                 "5. ## Pattern Recognition\n"
                 "6. ## Real-world Applications (if applicable)\n\n"
-                
                 f"Question: {question}"
             )
             # Call Gemini API (replace with your actual call)
@@ -470,11 +480,24 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
             return Response({'error': 'A valid development question is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Fetch user's Development tasks
+            user_tasks = Task.objects.filter(user=request.user, category='development')
+            if user_tasks.exists():
+                tasks_summary = "\n".join([
+                    f"- {task.title} | {'Completed' if task.completed else 'Incomplete'}"
+                    f" | Due: {task.due_date if task.due_date else 'N/A'}"
+                    f"\n  {task.description[:100]}{'...' if len(task.description) > 100 else ''}"
+                    for task in user_tasks
+                ])
+                tasks_section = f"User's Development Tasks:\n{tasks_summary}\n\n"
+            else:
+                tasks_section = "User has no Development tasks.\n\n"
+
             prompt = (
+                f"{tasks_section}"
                 "You are a Senior Software Development Specialist with 10+ years of experience in enterprise-level applications. "
                 "Your expertise includes full-stack development (frontend, backend, databases), software architecture and design patterns, "
                 "code quality, testing, and best practices, DevOps and deployment strategies, performance optimization, and security considerations.\n\n"
-                
                 "When responding, you must:\n"
                 "- Follow SOLID principles and clean code practices\n"
                 "- Consider scalability, maintainability, and performance\n"
@@ -483,7 +506,6 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
                 "- Recommend testing strategies\n"
                 "- Consider security implications\n"
                 "- Provide production-ready solutions\n\n"
-                
                 "FORMATTING REQUIREMENTS - Format your response using clean markdown with:\n"
                 "- Use ## for main headings\n"
                 "- Use **bold** for important concepts (NOT asterisks)\n"
@@ -492,7 +514,6 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Include best practices and explanations where appropriate\n\n"
-                
                 "Structure your response with these sections:\n"
                 "1. ## Problem Analysis\n"
                 "2. ## Solution Architecture\n"
@@ -502,7 +523,6 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
                 "6. ## Testing Strategy\n"
                 "7. ## Security Considerations\n"
                 "8. ## Performance & Scalability\n\n"
-                
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
@@ -606,13 +626,26 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
             return Response({'error': 'A valid system design question is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Fetch user's System Design tasks
+            user_tasks = Task.objects.filter(user=request.user, category='system_design')
+            if user_tasks.exists():
+                tasks_summary = "\n".join([
+                    f"- {task.title} | {'Completed' if task.completed else 'Incomplete'}"
+                    f" | Due: {task.due_date if task.due_date else 'N/A'}"
+                    f"\n  {task.description[:100]}{'...' if len(task.description) > 100 else ''}"
+                    for task in user_tasks
+                ])
+                tasks_section = f"User's System Design Tasks:\n{tasks_summary}\n\n"
+            else:
+                tasks_section = "User has no System Design tasks.\n\n"
+
             prompt = (
+                f"{tasks_section}"
                 "You are a System Design Expert specializing in large-scale distributed systems with 15+ years of experience "
                 "in designing systems for companies like Google, Amazon, and Netflix. Your expertise includes scalable architecture design, "
                 "database design and selection (SQL/NoSQL), microservices vs monolith decisions, load balancing and caching strategies, "
                 "message queues and event-driven architecture, performance optimization and bottleneck identification, "
                 "fault tolerance and disaster recovery.\n\n"
-                
                 "When responding, you must:\n"
                 "- Start with requirements gathering and constraints\n"
                 "- Consider scalability from day one\n"
@@ -621,7 +654,6 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
                 "- Address availability, consistency, and partition tolerance (CAP theorem)\n"
                 "- Provide diagrams or architectural overviews when helpful\n"
                 "- Consider both technical and business constraints\n\n"
-                
                 "FORMATTING REQUIREMENTS - Format your response using clean markdown with:\n"
                 "- Use ## for main headings\n"
                 "- Use **bold** for important concepts (NOT asterisks)\n"
@@ -629,8 +661,7 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
                 "- Use - for bullet points\n"
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
-                "- Include architecture diagrams (as text), technology choices, and best practices\n\n"
-                
+                "- Include diagrams or visual aids where appropriate\n\n"
                 "Structure your response with these sections:\n"
                 "1. ## Requirements Analysis\n"
                 "2. ## System Constraints & Scale Estimation\n"
@@ -641,7 +672,6 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
                 "7. ## Reliability & Fault Tolerance\n"
                 "8. ## Technology Stack & Trade-offs\n"
                 "9. ## Monitoring & Observability\n\n"
-                
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
@@ -739,13 +769,26 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
             return Response({'error': 'A valid job search question is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Fetch user's Job Search tasks
+            user_tasks = Task.objects.filter(user=request.user, category='job_search')
+            if user_tasks.exists():
+                tasks_summary = "\n".join([
+                    f"- {task.title} | {'Completed' if task.completed else 'Incomplete'}"
+                    f" | Due: {task.due_date if task.due_date else 'N/A'}"
+                    f"\n  {task.description[:100]}{'...' if len(task.description) > 100 else ''}"
+                    for task in user_tasks
+                ])
+                tasks_section = f"User's Job Search Tasks:\n{tasks_summary}\n\n"
+            else:
+                tasks_section = "User has no Job Search tasks.\n\n"
+
             prompt = (
+                f"{tasks_section}"
                 "You are an experienced Job Search Guide and Career Coach with 12+ years of experience helping professionals "
                 "at all levels land their dream jobs at top companies like FAANG, startups, and Fortune 500 companies. "
                 "Your expertise includes resume optimization and ATS systems, interview preparation (technical and behavioral), "
                 "salary negotiation strategies, career transition planning, industry trends and market analysis, "
                 "networking and personal branding, and job search strategies across different experience levels.\n\n"
-                
                 "When responding, you must:\n"
                 "- Provide actionable, specific advice\n"
                 "- Consider current job market trends (2024-2025)\n"
@@ -754,7 +797,6 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
                 "- Address both technical and soft skill development\n"
                 "- Consider industry-specific requirements\n"
                 "- Provide step-by-step action plans\n\n"
-                
                 "FORMATTING REQUIREMENTS - Format your response using clean markdown with:\n"
                 "- Use ## for main headings\n"
                 "- Use **bold** for important concepts (NOT asterisks)\n"
@@ -762,7 +804,6 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Include tips, resources, and best practices where appropriate\n\n"
-                
                 "Structure your response with these sections:\n"
                 "1. ## Situation Analysis\n"
                 "2. ## Strategic Approach\n"
@@ -771,7 +812,6 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
                 "5. ## Timeline & Milestones\n"
                 "6. ## Common Pitfalls to Avoid\n"
                 "7. ## Success Metrics\n\n"
-                
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
