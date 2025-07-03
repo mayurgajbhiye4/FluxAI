@@ -353,9 +353,46 @@ const Assistant = () => {
                                 </Button>
                               </div>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {response.response?.substring(0, 100)}...
-                            </p>
+                            <div className="text-xs text-muted-foreground mt-1 line-clamp-2 prose prose-xs prose-neutral max-w-none">
+                              <ReactMarkdown
+                                components={{
+                                  code: ({ className, children, ...props }: any) => {
+                                    const match = /language-(\w+)/.exec(className || '');
+                                    const isInline = !match;
+                                    return !isInline ? (
+                                      <pre className="ai-code-block p-1 rounded-md overflow-x-auto border border-primary/10 bg-muted/30">
+                                        <code className={className} {...props}>
+                                          {children}
+                                        </code>
+                                      </pre>
+                                    ) : (
+                                      <code className="bg-muted px-1 py-0.5 rounded text-xs" {...props}>
+                                        {children}
+                                      </code>
+                                    );
+                                  },
+                                  pre: ({ children }: any) => (
+                                    <pre className="bg-muted p-1 rounded-md overflow-x-auto whitespace-pre-wrap">
+                                      {children}
+                                    </pre>
+                                  ),
+                                  h1: ({ children }: any) => (
+                                    <h1 className="text-base font-bold mt-2 mb-1 first:mt-0">{children}</h1>
+                                  ),
+                                  h2: ({ children }: any) => (
+                                    <h2 className="text-sm font-bold mt-2 mb-1 first:mt-0">{children}</h2>
+                                  ),
+                                  h3: ({ children }: any) => (
+                                    <h3 className="text-xs font-bold mt-1 mb-1 first:mt-0">{children}</h3>
+                                  ),
+                                  strong: ({ children }: any) => (
+                                    <strong className="font-bold">{children}</strong>
+                                  ),
+                                }}
+                              >
+                                {response.response?.substring(0, 100) + '...'}
+                              </ReactMarkdown>
+                            </div>
                           </motion.div>
                         );
                       })}
