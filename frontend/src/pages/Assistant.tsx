@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import ReactMarkdown from 'react-markdown';
 
 const CATEGORY_MAP = {
   dsa: {
@@ -226,7 +227,7 @@ const Assistant = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* List and filter */}
           <div className="col-span-2">
-            <Card className="h-[600px] flex flex-col">
+            <Card className="h-[70vh] flex flex-col">
               <CardHeader className="pb-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl flex items-center">
@@ -370,7 +371,7 @@ const Assistant = () => {
             </Card>
           </div>
           {/* Sidebar for selected response */}
-          <div className="h-[600px]">
+          <div className="h-[70vh]">
             {selectedResponse ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -421,8 +422,45 @@ const Assistant = () => {
                   </CardHeader>
                   <CardContent className="flex-1 min-h-0 p-4">
                     <ScrollArea className="h-full w-full">
-                      <div className="text-sm whitespace-pre-wrap pr-4 max-h-full overflow-hidden">
-                        {responses.find(r => r.id === selectedResponse)?.response}
+                      <div className="overflow-y-auto h-full text-sm prose prose-sm pr-2 scrollbar-fade">
+                        <ReactMarkdown
+                          components={{
+                            code: ({ className, children, ...props }: any) => {
+                              const match = /language-(\w+)/.exec(className || '');
+                              const isInline = !match;
+                              return !isInline ? (
+                                <pre className="ai-code-block p-3 rounded-md overflow-x-auto border border-primary/20 bg-muted/50">
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
+                                </pre>
+                              ) : (
+                                <code className="bg-muted px-1 py-0.5 rounded text-xs" {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            pre: ({ children }: any) => (
+                              <pre className="bg-muted p-3 rounded-md overflow-x-auto whitespace-pre-wrap">
+                                {children}
+                              </pre>
+                            ),
+                            h1: ({ children }: any) => (
+                              <h1 className="text-xl font-bold mt-6 mb-3 first:mt-0">{children}</h1>
+                            ),
+                            h2: ({ children }: any) => (
+                              <h2 className="text-lg font-bold mt-5 mb-2 first:mt-0">{children}</h2>
+                            ),
+                            h3: ({ children }: any) => (
+                              <h3 className="text-base font-bold mt-4 mb-2 first:mt-0">{children}</h3>
+                            ),
+                            strong: ({ children }: any) => (
+                              <strong className="font-bold">{children}</strong>
+                            ),
+                          }}
+                        >
+                          {responses.find(r => r.id === selectedResponse)?.response || ''}
+                        </ReactMarkdown>
                       </div>
                     </ScrollArea>
                   </CardContent>
