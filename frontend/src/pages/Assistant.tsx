@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bot, FileText, Trash2, Download, RefreshCw } from 'lucide-react';
+import { Bot, FileText, Trash2, Download, RefreshCw, RotateCcw } from 'lucide-react';
 import PageTransition from '@/components/layout/PageTransition';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -52,6 +52,7 @@ const Assistant = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState<string>('all');
   const { toast } = useToast();
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
 
   const getAuthToken = () => {
     return localStorage.getItem('authToken') || '';
@@ -145,6 +146,7 @@ const Assistant = () => {
 
   // Regenerate a response
   const regenerateResponse = async (id: string) => {
+    setRegeneratingId(id);
     try {
       const csrfToken = await getCSRFToken();
       const response = await fetch(`${CATEGORY_MAP[category].endpoint}${id}/regenerate/`, {
@@ -161,6 +163,8 @@ const Assistant = () => {
       toast({ title: 'Success', description: data.message });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to regenerate response', variant: 'destructive' });
+    } finally {
+      setRegeneratingId(null);
     }
   };
 
@@ -326,8 +330,13 @@ const Assistant = () => {
                                     e.stopPropagation();
                                     regenerateResponse(response.id);
                                   }}
+                                  disabled={regeneratingId === response.id}
                                 >
-                                  <RefreshCw className="h-3 w-3" />
+                                  {regeneratingId === response.id ? (
+                                    <RotateCcw className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <RotateCcw className="h-3 w-3" />
+                                  )}
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -444,8 +453,13 @@ const Assistant = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => regenerateResponse(selectedResponse)}
+                          disabled={regeneratingId === selectedResponse}
                         >
-                          <RefreshCw className="h-4 w-4" />
+                          {regeneratingId === selectedResponse ? (
+                            <RotateCcw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RotateCcw className="h-4 w-4" />
+                          )}
                         </Button>
                         <Button
                           variant="outline"
