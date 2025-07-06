@@ -107,12 +107,12 @@ const Index = () => {
           className="text-center mb-12"
         >
           <h1 className="text-4xl font-bold mb-4">
-            StudyTrack
+            Flux
             <span className="text-primary-500 dark:text-blue-400">AI</span>
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Your personal AI-powered study assistant. Track your progress, manage goals, 
-            and get smart summaries of your study materials.
+            and get smart suggestions on your tech goals.
           </p>
         </motion.div>
         
@@ -145,9 +145,9 @@ const Index = () => {
         >
           <Card>
             <CardHeader>
-              <CardTitle>Welcome to StudyTrackAI</CardTitle>
+              <CardTitle>Welcome to FluxAI</CardTitle>
               <CardDescription>
-                Your comprehensive study tracking and AI assistant platform
+                Your comprehensive platform for goal tracking and AI-powered study assistance
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
@@ -155,20 +155,20 @@ const Index = () => {
                 <h3 className="text-lg font-medium mb-2">Getting Started</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start">
-                    <span className="bg-primary/10 text-primary rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">1</span>
+                    <span className="bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">1</span>
                     <span>Choose a category from the cards above or the navigation menu</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="bg-primary/10 text-primary rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">2</span>
+                    <span className="bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">2</span>
                     <span>Add tasks to track your learning progress in each area</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="bg-primary/10 text-primary rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">3</span>
+                    <span className="bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">3</span>
                     <span>Set daily goals to maintain consistent progress</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="bg-primary/10 text-primary rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">4</span>
-                    <span>Use the AI Assistant to summarize study materials</span>
+                    <span className="bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center mr-2 mt-0.5">4</span>
+                    <span>Use the AI Assistant to ask your tech doubts</span>
                   </li>
                 </ul>
               </div>
@@ -193,8 +193,8 @@ const Index = () => {
                     <span><strong>Job Search Tracker:</strong> Monitor application status and interviews</span>
                   </li>
                   <li className="flex items-start mt-2">
-                    <span className="text-primary mr-2">•</span>
-                    <span><strong>AI Assistant:</strong> Summarize your notes and PDFs for efficient review</span>
+                    <span className="text-primary mr-2 dark:text-primary-foreground">•</span>
+                    <span><strong>AI Assistant:</strong> Ask doubts and get suggestions on your goals</span>
                   </li>
                 </ul>
               </div>

@@ -61,7 +61,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <NavLink to="/" className="text-xl font-medium">
-            StudyTrack
+            Flux
             <span className="text-primary-500 dark:text-blue-400">AI</span>
           </NavLink>
           
