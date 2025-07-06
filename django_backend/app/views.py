@@ -14,7 +14,7 @@ from django.middleware.csrf import get_token
 from django.conf import settings
 from django.utils import timezone
 import google.generativeai as genai
-from .throttles import AIGenerationThrottle, AIRegenerationThrottle, BurstRateThrottle, SustainedRateThrottle
+from .throttles import AIGenerationThrottle, AIRegenerationThrottle
 
 try:
     genai.configure(api_key=settings.GEMINI_API_KEY)
@@ -304,7 +304,6 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
     serializer_class = DSAAIResponseSerializer
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
-    throttle_classes = [AIGenerationThrottle, SustainedRateThrottle]
 
     def get_queryset(self):
         """Return DSA responses for the authenticated user only"""
@@ -315,7 +314,7 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], throttle_classes=[AIGenerationThrottle])
     def generate_response(self, request):
         """
         Generate a DSA AI response using Gemini.
@@ -448,13 +447,12 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
             'results': serializer.data
         })
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], throttle_classes = [AIRegenerationThrottle])
     def regenerate(self, request, pk=None):
         """
         Regenerate the AI response for a given DSA response object.
         POST /api/dsa-ai-responses/<id>/regenerate/
         """
-        self.throttle_classes = [AIRegenerationThrottle, SustainedRateThrottle]
         instance = self.get_object()
         try:
             # Compose the prompt as in generate_response
@@ -525,7 +523,6 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
     serializer_class = SoftwareDevAIResponseSerializer
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
-    throttle_classes = [AIGenerationThrottle, SustainedRateThrottle]
 
     def get_queryset(self):
         """Return dev responses for the authenticated user only"""
@@ -535,7 +532,7 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
         """Ensure the response is associated with the current user"""
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], throttle_classes=[AIGenerationThrottle])
     def generate_response(self, request):
         """
         Generate a Software Dev AI response using Gemini.
@@ -669,13 +666,12 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
             'results': serializer.data
         })
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], throttle_classes = [AIRegenerationThrottle])
     def regenerate(self, request, pk=None):
         """
         Regenerate the AI response for a given Software Development response object.
         POST /api/software-dev-ai-responses/<id>/regenerate/
         """
-        self.throttle_classes = [AIRegenerationThrottle, SustainedRateThrottle]
         instance = self.get_object()
         try:
             # Compose the prompt as in generate_response
@@ -748,7 +744,6 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
     serializer_class = SystemDesignAIResponseSerializer
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
-    throttle_classes = [AIGenerationThrottle, SustainedRateThrottle]
 
     def get_queryset(self):
         return SystemDesignAIResponse.objects.filter(user=self.request.user)
@@ -756,7 +751,7 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], throttle_classes=[AIGenerationThrottle])
     def generate_response(self, request):
         question = request.data.get('question')
         topic_tags = request.data.get('topic_tags', '')
@@ -883,13 +878,12 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
             'results': serializer.data
         })
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], throttle_classes = [AIRegenerationThrottle])
     def regenerate(self, request, pk=None):
         """
         Regenerate the AI response for a given System Design response object.
         POST /api/system-design-ai-responses/<id>/regenerate/
         """
-        self.throttle_classes = [AIRegenerationThrottle, SustainedRateThrottle]
         instance = self.get_object()
         try:
             user_tasks = Task.objects.filter(user=request.user, category='system_design')
@@ -964,7 +958,6 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
     serializer_class = JobSearchAIResponseSerializer
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
-    throttle_classes = [AIGenerationThrottle, SustainedRateThrottle]
 
     def get_queryset(self):
         return JobSearchAIResponse.objects.filter(user=self.request.user)
@@ -972,7 +965,7 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], throttle_classes=[AIGenerationThrottle])
     def generate_response(self, request):
         question = request.data.get('question')
         topic_tags = request.data.get('topic_tags', '')
@@ -1098,13 +1091,12 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
             'results': serializer.data
         })
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], throttle_classes = [AIRegenerationThrottle])
     def regenerate(self, request, pk=None):
         """
         Regenerate the AI response for a given Job Search response object.
         POST /api/job-search-ai-responses/<id>/regenerate/
         """
-        self.throttle_classes = [AIRegenerationThrottle, SustainedRateThrottle]
         instance = self.get_object()
         try:
             user_tasks = Task.objects.filter(user=request.user, category='job_search')

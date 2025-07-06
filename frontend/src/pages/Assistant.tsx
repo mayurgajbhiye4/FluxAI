@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import ReactMarkdown from 'react-markdown';
+import { handle429 } from "@/utils/handle429";
 
 const CATEGORY_MAP = {
   dsa: {
@@ -157,6 +158,11 @@ const Assistant = () => {
         },
         credentials: 'include',
       });
+      if (response.status === 429) {
+        handle429(response);
+        setRegeneratingId(null);
+        return;
+      }
       if (!response.ok) throw new Error('Failed to regenerate response');
       const data = await response.json();
       setResponses(prev => prev.map(r => r.id === id ? { ...r, response: data.response, updated_at: new Date().toISOString() } : r));
@@ -191,7 +197,6 @@ const Assistant = () => {
     setFilter('all');
     setSelectedResponse(null);
     setResponses([]);
-    fetchResponses(value, 'all');
   };
 
   useEffect(() => {

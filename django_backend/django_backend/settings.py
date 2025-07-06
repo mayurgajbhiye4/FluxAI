@@ -135,7 +135,7 @@ REST_FRAMEWORK = {
         'user': '1000/hour',
         'burst': '60/minute',
         'sustained': '1000/hour',
-        'ai_generation': '10/minute',
+        'ai_generation': '5/minute',
         'ai_regeneration': '5/minute',
     }
 }

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import ReactMarkdown from 'react-markdown';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { handle429 } from "@/utils/handle429";
 import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
@@ -139,6 +140,12 @@ const SystemDesign = () => {
           // Optionally add topic_tags, system_scale, system_type, etc.
         }),
       });
+      if (response.status === 429) {
+        handle429(response);
+        setIsGenerating(false);
+        setHasResponse(false);
+        return;
+      }
       if (!response.ok) {
         const errorData = await response.json();
         setAiResponse(errorData.error || 'Sorry, something went wrong.');
