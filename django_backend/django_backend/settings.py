@@ -84,11 +84,11 @@ WSGI_APPLICATION = 'django_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'studytrack',
+        'ENGINE': 'django.db.backends.postgresql',  
+        'NAME': 'fluxai_db',
         'USER': config('DB_USERNAME'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': 'localhost',
+        'HOST': 'postgresql://fluxai_db_user:xVhTBlMc9k4GBZCPfJVEZrq1KCdN363B@dpg-d1ls543e5dus73840itg-a.singapore-postgres.render.com/fluxai_db',
         'PORT': '5432',
     }
 }
