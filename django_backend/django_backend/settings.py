@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': 'fluxai_db',
         'USER': config('DB_USERNAME'),
         'PASSWORD': config('DB_PASSWORD'),
-        'HOST': 'postgresql://fluxai_db_user:xVhTBlMc9k4GBZCPfJVEZrq1KCdN363B@dpg-d1ls543e5dus73840itg-a.singapore-postgres.render.com/fluxai_db',
+        'HOST': config('DATABASE_URL'),
         'PORT': '5432',
     }
 }
