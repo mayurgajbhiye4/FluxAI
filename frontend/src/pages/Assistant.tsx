@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast';
 import ReactMarkdown from 'react-markdown';
 import { handle429 } from "@/utils/handle429";
+import { apiFetch } from '@/lib/api';
 
 const CATEGORY_MAP = {
   dsa: {
@@ -77,7 +78,7 @@ const Assistant = () => {
   };
   const fetchCSRFToken = async () => {
     try {
-      const response = await fetch('/api/csrf_token/', {
+      const response = await apiFetch('/csrf_token/', {
         method: 'GET',
         credentials: 'include',
       });
@@ -108,7 +109,7 @@ const Assistant = () => {
         else if (cat === 'job_search') params = `/by_category/?category=${filterValue}`;
         url += params;
       }
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
         },
@@ -128,7 +129,7 @@ const Assistant = () => {
   const deleteResponse = async (id: string) => {
     try {
       const csrfToken = await getCSRFToken();
-      const response = await fetch(`${CATEGORY_MAP[category].endpoint}${id}/`, {
+      const response = await apiFetch(`${CATEGORY_MAP[category].endpoint}${id}/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
@@ -150,7 +151,7 @@ const Assistant = () => {
     setRegeneratingId(id);
     try {
       const csrfToken = await getCSRFToken();
-      const response = await fetch(`${CATEGORY_MAP[category].endpoint}${id}/regenerate/`, {
+      const response = await apiFetch(`${CATEGORY_MAP[category].endpoint}${id}/regenerate/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,

@@ -23,6 +23,7 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+import { apiFetch } from '@/lib/api';
 
 // CSRF and Auth helpers (copied from Assistant.tsx)
 const getAuthToken = () => {
@@ -128,7 +129,7 @@ const Development = () => {
 
     try {
       const csrfToken = await getCSRFToken();
-      const response = await fetch('/api/software-dev-ai-responses/generate_response/', {
+      const response = await apiFetch('software-dev-ai-responses/generate_response/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

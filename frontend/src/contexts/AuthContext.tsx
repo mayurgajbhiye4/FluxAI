@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { apiFetch } from '@/lib/api';
 
 type User = {
   id: string;
@@ -18,7 +19,7 @@ type AuthContextType = {
 };
 
 const getCsrfToken = async () => {
-  const response = await fetch('/api/csrf_token/', {
+  const response = await apiFetch('csrf_token/', {
     method: 'GET',
     credentials: 'include'
   });
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/me/', {
+        const response = await apiFetch('me/', {
           credentials: 'include',
         });
         
@@ -58,9 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const fetchWithCSRF = async (url: string, options: RequestInit = {}) => {
+  const fetchWithCSRF = async (endpoint: string, options: RequestInit = {}) => {
     const csrfToken = await getCsrfToken();
-    return fetch(url, {
+    return apiFetch(endpoint, {
       ...options,
       credentials: 'include',
       headers: {
@@ -74,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await fetchWithCSRF('/api/login/', {
+      const response = await fetchWithCSRF('login/', {
         method: 'POST',
         body: JSON.stringify({ email: email.trim().toLowerCase(), password: password }),
       });
@@ -102,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, username: string, password: string, confirm_password: string) => {
     setLoading(true);
     try {
-      const response = await fetchWithCSRF('/api/signup/', {
+      const response = await fetchWithCSRF('signup/', {
         method: 'POST',
         body: JSON.stringify({ email, username, password, confirm_password }),
       });
@@ -128,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     try {
-      await fetchWithCSRF('/api/logout/', {
+      await fetchWithCSRF('logout/', {
         method: 'POST',
       });
       setUser(null);

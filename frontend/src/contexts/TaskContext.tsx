@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext'
 import Development from '@/pages/Development';
 import { useGoalContext } from '@/contexts/GoalContext';
+import { apiFetch } from '@/lib/api';
 
 interface Summary {
   id: string;
@@ -102,7 +103,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchTasks = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/tasks/', {
+      const response = await apiFetch('tasks/', {
         credentials: 'include'
       });
       
@@ -169,7 +170,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try{
       setTasks(prev => [newTask, ...prev]);
 
-      const response = await fetch('/api/tasks/', {
+      const response = await apiFetch('tasks/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -240,7 +241,7 @@ const toggleTask = async (id: string) => {
   
   try {
     // Make API call to update the task in the backend
-    const response = await fetch(`/api/tasks/${id}/`, {
+    const response = await apiFetch(`tasks/${id}/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -260,7 +261,7 @@ const toggleTask = async (id: string) => {
     if (newCompleted) {
       try {
         // First get the goal ID for this category
-        const goalsResponse = await fetch('/api/goals/', {
+        const goalsResponse = await apiFetch('goals/', {
           credentials: 'include'
         });
         
@@ -269,7 +270,7 @@ const toggleTask = async (id: string) => {
           const categoryGoal = goals.find((goal: any) => goal.category === taskToToggle.category);
           
           if (categoryGoal) {
-            const goalResponse = await fetch(`/api/goals/${categoryGoal.id}/add_progress/`, {
+            const goalResponse = await apiFetch(`goals/${categoryGoal.id}/add_progress/`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -295,7 +296,7 @@ const toggleTask = async (id: string) => {
     } else {
       // If task is being uncompleted, subtract progress
       try {
-        const goalsResponse = await fetch('/api/goals/', {
+        const goalsResponse = await apiFetch('goals/', {
           credentials: 'include'
         });
         
@@ -304,7 +305,7 @@ const toggleTask = async (id: string) => {
           const categoryGoal = goals.find((goal: any) => goal.category === taskToToggle.category);
           
           if (categoryGoal) {
-            const goalResponse = await fetch(`/api/goals/${categoryGoal.id}/subtract_progress/`, {
+            const goalResponse = await apiFetch(`goals/${categoryGoal.id}/subtract_progress/`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -362,7 +363,7 @@ const editTask = async (id: string, newTitle: string) => {
   
   try {
     // Send the update to the backend
-    const response = await fetch(`/api/tasks/${id}/`, {
+    const response = await apiFetch(`tasks/${id}/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -412,7 +413,7 @@ const deleteTask = async (id: string) => {
   
   try {
     // Send the delete request to the backend
-    const response = await fetch(`/api/tasks/${id}/`, {
+    const response = await apiFetch(`tasks/${id}/`, {
       method: 'DELETE',
       headers: {
         'X-CSRFToken': getCsrfToken(),

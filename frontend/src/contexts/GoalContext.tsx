@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { apiFetch } from '@/lib/api';
 
 // Helper function for CSRF token
 const getCsrfToken = () => {
@@ -88,7 +89,7 @@ export function GoalProvider({ children }) {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/goals/', {
+      const response = await apiFetch('goals/', {
         credentials: 'include'
       });
       
@@ -144,7 +145,7 @@ export function GoalProvider({ children }) {
       
       if (existingGoal) {
         // Update existing goal
-        response = await fetch(`/api/goals/${existingGoal.id}/`, {
+        response = await apiFetch(`goals/${existingGoal.id}/`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ export function GoalProvider({ children }) {
         });
       } else {
         // Create new goal
-        response = await fetch('/api/goals/', {
+        response = await apiFetch('goals/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -217,7 +218,7 @@ export function GoalProvider({ children }) {
     if (!user) return false;
 
     try {
-      const response = await fetch(`/api/goals/${goalId}/add_progress/`, {
+      const response = await apiFetch(`goals/${goalId}/add_progress/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -286,7 +287,7 @@ export function GoalProvider({ children }) {
     if (!user) return false;
 
     try {
-      const response = await fetch(`/api/goals/${goalId}/subtract_progress/`, {
+      const response = await apiFetch(`goals/${goalId}/subtract_progress/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -352,7 +353,7 @@ export function GoalProvider({ children }) {
       if (!user) return false;
   
       try {
-        const response = await fetch(`/api/goals/${goalId}/mark_daily_goal_completed/`, {
+        const response = await apiFetch(`goals/${goalId}/mark_daily_goal_completed/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
