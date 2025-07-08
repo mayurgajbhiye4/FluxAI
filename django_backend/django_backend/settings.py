@@ -173,6 +173,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://192.168.0.156:8080",
+    "https://studytrack-ai.vercel.app"
 ]
 
 SESSION_COOKIE_AGE = 1209600
