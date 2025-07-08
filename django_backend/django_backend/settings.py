@@ -30,7 +30,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     "https://fluxai-2oe4.onrender.com",
-    "studytrack-ai.vercel.app",
+    "https://studytrack-ai.vercel.app/",
     "localhost",
     "127.0.0.1"
 ]
