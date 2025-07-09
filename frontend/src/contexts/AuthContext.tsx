@@ -1,7 +1,7 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { apiFetch } from '@/lib/api';
+import { fetchWithCSRF } from '@/lib/csrf';
 
 type User = {
   id: string;
@@ -18,15 +18,6 @@ type AuthContextType = {
   signOut: () => Promise<void>;
 };
 
-const getCsrfToken = async () => {
-  const response = await apiFetch('csrf_token/', {
-    method: 'GET',
-    credentials: 'include'
-  });
-  const data = await response.json();
-  return data.csrfToken;
-};
-
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -39,9 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await apiFetch('me/', {
-          credentials: 'include',
-        });
+        const response = await fetchWithCSRF('me/');
         
         if (response.ok) {
           const data = await response.json();
@@ -58,19 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkAuth();
   }, []);
-
-  const fetchWithCSRF = async (endpoint: string, options: RequestInit = {}) => {
-    const csrfToken = await getCsrfToken();
-    return apiFetch(endpoint, {
-      ...options,
-      credentials: 'include',
-      headers: {
-        ...options.headers,
-        'X-CSRFToken': csrfToken || '',
-        'Content-Type': 'application/json'
-      }
-    });
-  };
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);

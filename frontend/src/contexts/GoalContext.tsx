@@ -1,15 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiFetch } from '@/lib/api';
-
-// Helper function for CSRF token
-const getCsrfToken = () => {
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith('csrftoken='))
-    ?.split('=')[1] || '';
-};
+import { fetchWithCSRF } from '@/lib/csrf';
 
 // Helper function to format category name
 function formatCategoryName(categoryValue: string) {
@@ -79,7 +71,7 @@ export function GoalProvider({ children }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    apiFetch('csrf_token/', {
+    fetchWithCSRF('csrf_token/', {
       method: 'GET',
       credentials: 'include'
     });
@@ -96,7 +88,7 @@ export function GoalProvider({ children }) {
     setLoading(true);
     
     try {
-      const response = await apiFetch('goals/', {
+      const response = await fetchWithCSRF('goals/', {
         credentials: 'include'
       });
       
@@ -152,11 +144,10 @@ export function GoalProvider({ children }) {
       
       if (existingGoal) {
         // Update existing goal
-        response = await apiFetch(`goals/${existingGoal.id}/`, {
+        response = await fetchWithCSRF(`goals/${existingGoal.id}/`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCsrfToken(),
           },
           body: JSON.stringify({
             daily_target: dailyTarget
@@ -165,11 +156,10 @@ export function GoalProvider({ children }) {
         });
       } else {
         // Create new goal
-        response = await apiFetch('goals/', {
+        response = await fetchWithCSRF('goals/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCsrfToken(),
           },
           body: JSON.stringify({
             category, 
@@ -225,11 +215,10 @@ export function GoalProvider({ children }) {
     if (!user) return false;
 
     try {
-      const response = await apiFetch(`goals/${goalId}/add_progress/`, {
+      const response = await fetchWithCSRF(`goals/${goalId}/add_progress/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCsrfToken(),
         },
         body: JSON.stringify({ amount }),
         credentials: 'include'
@@ -294,11 +283,10 @@ export function GoalProvider({ children }) {
     if (!user) return false;
 
     try {
-      const response = await apiFetch(`goals/${goalId}/subtract_progress/`, {
+      const response = await fetchWithCSRF(`goals/${goalId}/subtract_progress/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCsrfToken(),
         },
         body: JSON.stringify({ amount }),
         credentials: 'include'
@@ -360,11 +348,10 @@ export function GoalProvider({ children }) {
       if (!user) return false;
   
       try {
-        const response = await apiFetch(`goals/${goalId}/mark_daily_goal_completed/`, {
+        const response = await fetchWithCSRF(`goals/${goalId}/mark_daily_goal_completed/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCsrfToken(),
           },
           credentials: 'include'
         });

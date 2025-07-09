@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Development from '@/pages/Development';
 import { useGoalContext } from '@/contexts/GoalContext';
 import { apiFetch } from '@/lib/api';
+import { fetchWithCSRF } from '@/lib/csrf';
 
 interface Summary {
   id: string;
@@ -21,12 +22,6 @@ const categoryMap: Record<string, string> = {
   system_design: 'System Design'
 };
 
-const getCsrfToken = () => {
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith('csrftoken='))
-    ?.split('=')[1] || '';
-};
 
 interface TaskContextType {
   tasks: Task[];
@@ -176,11 +171,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try{
       setTasks(prev => [newTask, ...prev]);
 
-      const response = await apiFetch('tasks/', {
+      const response = await fetchWithCSRF('tasks/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken(),
       },
       body: JSON.stringify({
         title: title,
@@ -247,11 +241,10 @@ const toggleTask = async (id: string) => {
   
   try {
     // Make API call to update the task in the backend
-    const response = await apiFetch(`tasks/${id}/`, {
+    const response = await fetchWithCSRF(`tasks/${id}/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken(),
       },
       body: JSON.stringify({
         completed: newCompleted
@@ -280,7 +273,6 @@ const toggleTask = async (id: string) => {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken(),
               },
               body: JSON.stringify({
                 amount: 1
@@ -315,7 +307,6 @@ const toggleTask = async (id: string) => {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken(),
               },
               body: JSON.stringify({
                 amount: 1
@@ -369,11 +360,10 @@ const editTask = async (id: string, newTitle: string) => {
   
   try {
     // Send the update to the backend
-    const response = await apiFetch(`tasks/${id}/`, {
+    const response = await fetchWithCSRF(`tasks/${id}/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrfToken(),
       },
       body: JSON.stringify({
         title: newTitle,
@@ -419,11 +409,8 @@ const deleteTask = async (id: string) => {
   
   try {
     // Send the delete request to the backend
-    const response = await apiFetch(`tasks/${id}/`, {
+    const response = await fetchWithCSRF(`tasks/${id}/`, {
       method: 'DELETE',
-      headers: {
-        'X-CSRFToken': getCsrfToken(),
-      },
       credentials: 'include'
     });
     

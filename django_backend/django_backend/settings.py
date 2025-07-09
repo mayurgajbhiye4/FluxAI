@@ -33,7 +33,7 @@ ALLOWED_HOSTS = [
     "studytrack-ai.vercel.app",
     "localhost",
     "127.0.0.1"
-]
+]   
 
 # Application definition
 
@@ -173,7 +173,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.0.156:8080",
     "https://studytrack-ai.vercel.app",
     "https://fluxai-2oe4.onrender.com"
-]   
+]       
 
 SESSION_COOKIE_AGE = 1209600
 
