@@ -1,8 +1,7 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { fetchWithCSRF } from '@/lib/csrf';
-import { getCSRFToken } from '@/lib/csrf';
+import { fetchWithCSRF, getCSRFToken } from '@/lib/csrf';
 
 type User = {
   id: string;
@@ -113,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     try {
+      await getCSRFToken(); // Ensure CSRF cookie is set before POST
       await fetchWithCSRF('logout/', {
         method: 'POST',
       });
