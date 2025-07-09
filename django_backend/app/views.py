@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets, permissions 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes, action
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
