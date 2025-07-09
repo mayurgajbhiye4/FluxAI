@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { fetchWithCSRF } from '@/lib/csrf';
+import { getCSRFToken } from '@/lib/csrf';
 
 type User = {
   id: string;
@@ -46,6 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     checkAuth();
+  }, []);
+
+  // Ensure CSRF cookie is set on app load
+  useEffect(() => {
+    getCSRFToken().catch((err) => {
+      console.error('Failed to initialize CSRF token:', err);
+    });
   }, []);
 
   const signIn = async (email: string, password: string) => {

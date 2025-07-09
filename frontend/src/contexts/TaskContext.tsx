@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Development from '@/pages/Development';
 import { useGoalContext } from '@/contexts/GoalContext';
 import { apiFetch } from '@/lib/api';
-import { fetchWithCSRF } from '@/lib/csrf';
+import { fetchWithCSRF, getCSRFToken } from '@/lib/csrf';
 
 interface Summary {
   id: string;
@@ -60,10 +60,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user } = useAuth();
   const { fetchGoals } = useGoalContext();
 
+  // Ensure CSRF cookie is set on app load
   useEffect(() => {
-    apiFetch('csrf_token/', {
-      method: 'GET',
-      credentials: 'include'
+    // Call the async getCSRFToken to guarantee the cookie is set before any unsafe requests
+    getCSRFToken().catch((err) => {
+      console.error('Failed to initialize CSRF token:', err);
     });
   }, []);
 
@@ -407,7 +408,7 @@ const deleteTask = async (id: string) => {
   // Remove from local state immediately for responsive UI
   setTasks(prev => prev.filter(task => task.id !== id));
   
-  try {
+  try { 
     // Send the delete request to the backend
     const response = await fetchWithCSRF(`tasks/${id}/`, {
       method: 'DELETE',

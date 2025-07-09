@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchWithCSRF } from '@/lib/csrf';
+import { fetchWithCSRF, getCSRFToken } from '@/lib/csrf';
 
 // Helper function to format category name
 function formatCategoryName(categoryValue: string) {
@@ -70,10 +70,10 @@ export function GoalProvider({ children }) {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Ensure CSRF cookie is set on app load
   useEffect(() => {
-    fetchWithCSRF('csrf_token/', {
-      method: 'GET',
-      credentials: 'include'
+    getCSRFToken().catch((err) => {
+      console.error('Failed to initialize CSRF token:', err);
     });
   }, []);
 
