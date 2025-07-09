@@ -155,6 +155,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const addTask = async (title: string, category: Task['category']) => {
+    await getCSRFToken(); // Ensure CSRF cookie is set before POST
     const newTask: Task = {
       id: uuidv4(),
       title,
@@ -225,6 +226,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
   
 const toggleTask = async (id: string) => {
+  await getCSRFToken(); // Ensure CSRF cookie is set before PATCH
   // Find the task that is being toggled
   const taskToToggle = tasks.find(task => task.id === id);
   
@@ -344,6 +346,7 @@ const toggleTask = async (id: string) => {
 };
 
 const editTask = async (id: string, newTitle: string) => {
+  await getCSRFToken(); // Ensure CSRF cookie is set before PATCH
   // Find the original task
   const originalTask = tasks.find(task => task.id === id);
   
@@ -400,6 +403,7 @@ const editTask = async (id: string, newTitle: string) => {
 };
 
 const deleteTask = async (id: string) => {
+  await getCSRFToken(); // Ensure CSRF cookie is set before DELETE
   // Find the task being deleted
   const taskToDelete = tasks.find(task => task.id === id);
   

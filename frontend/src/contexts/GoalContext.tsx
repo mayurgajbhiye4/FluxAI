@@ -135,6 +135,7 @@ export function GoalProvider({ children }) {
 
   // Create or update a goal
   const updateGoal = async (category: string, dailyTarget: number) => {
+    await getCSRFToken(); // Ensure CSRF cookie is set before PATCH/POST
     if (!user) return false;
     
     try {
@@ -212,6 +213,7 @@ export function GoalProvider({ children }) {
   };
 
   const addProgress = async (goalId: number, amount: number = 1): Promise<boolean> => {
+    await getCSRFToken(); // Ensure CSRF cookie is set before POST
     if (!user) return false;
 
     try {
@@ -280,6 +282,7 @@ export function GoalProvider({ children }) {
   };
 
   const subtractProgress = async (goalId: number, amount: number = 1): Promise<boolean> => {
+    await getCSRFToken(); // Ensure CSRF cookie is set before POST
     if (!user) return false;
 
     try {
@@ -345,6 +348,7 @@ export function GoalProvider({ children }) {
 
   // Mark daily goal as completed
   const markDailyGoalCompleted = async (goalId: number): Promise<boolean> => {
+      await getCSRFToken(); // Ensure CSRF cookie is set before POST
       if (!user) return false;
   
       try {
