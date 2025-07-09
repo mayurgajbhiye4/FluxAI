@@ -24,45 +24,10 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 import { apiFetch } from '@/lib/api';
+import { getCSRFToken } from '@/lib/csrf';
 
-// CSRF and Auth helpers (copied from Assistant.tsx)
 const getAuthToken = () => {
   return localStorage.getItem('authToken') || '';
-};
-
-const getCSRFTokenFromCookie = () => {
-  const name = 'csrftoken';
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-};
-const fetchCSRFToken = async () => {
-  try {
-    const response = await fetch('/api/csrf_token/', {
-      method: 'GET',
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error('Failed to fetch CSRF token');
-    const data = await response.json();
-    return data.csrfToken;
-  } catch (error) {
-    console.error('Error fetching CSRF token:', error);
-    throw error;
-  }
-};
-const getCSRFToken = async () => {
-  const cookieToken = getCSRFTokenFromCookie();
-  if (cookieToken) return cookieToken;
-  return await fetchCSRFToken();
 };
 
 const SystemDesign = () => {
