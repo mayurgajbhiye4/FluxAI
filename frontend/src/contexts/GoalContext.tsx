@@ -8,7 +8,7 @@ const getCsrfToken = () => {
   return document.cookie
     .split('; ')
     .find(row => row.startsWith('csrftoken='))
-    ?.split('=')[1];
+    ?.split('=')[1] || '';
 };
 
 // Helper function to format category name
@@ -77,6 +77,13 @@ export function GoalProvider({ children }) {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  useEffect(() => {
+    apiFetch('csrf_token/', {
+      method: 'GET',
+      credentials: 'include'
+    });
+  }, []);
 
   // Fetch goals from backend API
   const fetchGoals = async () => {

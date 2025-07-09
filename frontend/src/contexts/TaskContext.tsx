@@ -22,11 +22,10 @@ const categoryMap: Record<string, string> = {
 };
 
 const getCsrfToken = () => {
-  // Try to get the CSRF token from cookies
   return document.cookie
     .split('; ')
     .find(row => row.startsWith('csrftoken='))
-    ?.split('=')[1];
+    ?.split('=')[1] || '';
 };
 
 interface TaskContextType {
@@ -65,6 +64,13 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const { user } = useAuth();
   const { fetchGoals } = useGoalContext();
+
+  useEffect(() => {
+    apiFetch('csrf_token/', {
+      method: 'GET',
+      credentials: 'include'
+    });
+  }, []);
 
   // Fetch current user info
   useEffect(() => {
