@@ -10,7 +10,7 @@ from django.contrib.auth import authenticate, login, logout
 from .models import CustomUser,Task, Goal, DSAAIResponse, SoftwareDevAIResponse, SystemDesignAIResponse, JobSearchAIResponse
 from .serializers import UserSerializer, LoginSerializer, GoalSerializer, TaskSerializer, DSAAIResponseSerializer, SoftwareDevAIResponseSerializer, SystemDesignAIResponseSerializer, JobSearchAIResponseSerializer
 from django.views.decorators.http import require_GET
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound
 from django.middleware.csrf import get_token
 from django.conf import settings
 from django.utils import timezone
@@ -24,6 +24,8 @@ except AttributeError:
     print("GEMINI_API_KEY not found in settings. AI features will be disabled.")
     pass
 
+def not_found(request, *args, **kwargs):
+    return HttpResponseNotFound("Not Found")
 
 @require_GET
 def csrf_token(request):
