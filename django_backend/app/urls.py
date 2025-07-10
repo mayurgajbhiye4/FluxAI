@@ -1,5 +1,4 @@
-from django.urls import path, re_path, include
-from django.views.generic import TemplateView
+from django.urls import path, include
 from .views import csrf_token, UserDetailsView, LoginView, SignupView, LogoutView
 
 from rest_framework.routers import DefaultRouter
@@ -24,6 +23,4 @@ urlpatterns = [
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/signup/', SignupView.as_view(), name='signup'),
     path('api/logout/', LogoutView.as_view(), name='logout'),
-
-    re_path(r'^(?:.*)/?$', TemplateView.as_view(template_name='index.html')),
 ]
