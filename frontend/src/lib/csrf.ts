@@ -2,12 +2,8 @@ import { apiFetch } from './api';
 
 // Get CSRF token from cookie (returns string, never a Promise)
 export function getCsrfToken(): string {
-  return (
-    document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('csrftoken='))
-      ?.split('=')[1] || ''
-  );
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : '';
 }
 
 // Wrapper for apiFetch that injects CSRF token into headers
