@@ -24,8 +24,6 @@ except AttributeError:
     print("GEMINI_API_KEY not found in settings. AI features will be disabled.")
     pass
 
-def home(request):
-    return render(request, "index.html")
 
 @require_GET
 def csrf_token(request):
