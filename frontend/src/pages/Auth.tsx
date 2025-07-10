@@ -153,7 +153,7 @@ const Auth = () => {
           <Card className="w-full">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold">
-                StudyTrack
+                Flux
                 <span className="text-primary-500 dark:text-blue-400">AI</span>
               </CardTitle>
               <CardDescription>
