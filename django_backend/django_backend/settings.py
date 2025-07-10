@@ -28,7 +28,12 @@ SECRET_KEY = config('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']   
+ALLOWED_HOSTS = [
+    "fluxai-frontend.onrender.com",
+    "fluxai-2oe4.onrender.com",
+    "localhost",
+    "127.0.0.1"
+]
 
 # Application definition
 
@@ -164,16 +169,14 @@ else:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://192.168.0.156:8080",
-    "https://studytrack-ai.vercel.app",
-    "https://fluxai-2oe4.onrender.com"
+    "https://fluxai-frontend.onrender.com",
+    "https://fluxai-2oe4.onrender.com",
 ]       
 
 SESSION_COOKIE_AGE = 1209600
 
-SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SAMESITE = 'None'   
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'   
 
 SESSION_COOKIE_HTTPONLY = True
 
@@ -186,5 +189,5 @@ GEMINI_API_KEY = config("GEMINI_API_KEY")
 GEMINI_MODEL_NAME = 'gemini-2.0-flash'
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://studytrack-ai.vercel.app",
+    "https://fluxai-frontend.onrender.com",
 ]
