@@ -31,7 +31,7 @@ Upload your notes or PDFs and let the AI do the reading, summarizing, and preten
 |--------------|------------------------------------|
 | 💻 Backend    | Django + Django REST Framework     |
 | 🌐 Frontend   | React + Tailwind CSS               |
-| 🧠 AI Magic   | OpenAI API + LangChain             |
+| 🧠 AI Magic   | Gemni API                          |
 | 💾 Database   | PostgreSQL                         |
 | 🧰 State Mgmt | React Context API                  |
 | ☕ Extras      | Existential dread & caffeine       |
@@ -43,11 +43,3 @@ Upload your notes or PDFs and let the AI do the reading, summarizing, and preten
 > Imagine beautiful dashboards and motivational guilt-trips. Stay tuned.
 
 ---
-
-## 🛠️ Local Setup Instructions
-
-Clone the repo:
-
-```bash
-git clone https://github.com/mayurgajbhiye4/FluxAI.git
-cd FluxAI
