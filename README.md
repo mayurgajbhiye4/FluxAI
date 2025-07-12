@@ -1,4 +1,4 @@
-# 🚀 FluxAI – Your AI-Powered Productivity Sidekick
+# 🚀 FluxAI – Your AI-Powered Productivity Tracker
 
 > Because who needs sleep when you have deadlines, LeetCode, and a mildly aggressive AI assistant?
 
