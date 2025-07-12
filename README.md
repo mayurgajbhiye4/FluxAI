@@ -1,8 +1,8 @@
-# 🚀 StudyTrackAI – Your AI-Powered Productivity Sidekick
+# 🚀 FluxAI – Your AI-Powered Productivity Sidekick
 
 > Because who needs sleep when you have deadlines, LeetCode, and a mildly aggressive AI assistant?
 
-**StudyTrackAI** is a full-stack productivity dashboard built for developers, job-seekers, and students drowning in TODOs. Whether you’re crying over failed binary tree traversals, ghosted by recruiters, or avoiding System Design like it’s a boss level – this app is your daily accountability buddy.
+**FluxAI** is a full-stack productivity dashboard built for developers, job-seekers, and students drowning in TODOs. Whether you’re crying over failed binary tree traversals, ghosted by recruiters, or avoiding System Design like it’s a boss level – this app is your daily accountability buddy.
 
 ---
 
