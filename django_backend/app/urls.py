@@ -1,6 +1,6 @@
-from django.urls import path, include
+from django.urls import path, include, re_path
 from .views import csrf_token, UserDetailsView, LoginView, SignupView, LogoutView
-
+from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 from app.views import TaskViewSet, GoalViewSet,DSAAIResponseViewSet, SoftwareDevAIResponseViewSet, SystemDesignAIResponseViewSet, JobSearchAIResponseViewSet
 
@@ -23,4 +23,6 @@ urlpatterns = [
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/signup/', SignupView.as_view(), name='signup'),
     path('api/logout/', LogoutView.as_view(), name='logout'),
+
+    re_path(r'^.*', TemplateView.as_view(template_name='index.html')),
 ]
