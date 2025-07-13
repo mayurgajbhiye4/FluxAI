@@ -23,6 +23,4 @@ urlpatterns = [
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/signup/', SignupView.as_view(), name='signup'),
     path('api/logout/', LogoutView.as_view(), name='logout'),
-
-    re_path(r'^.*', TemplateView.as_view(template_name='index.html')),
 ]
