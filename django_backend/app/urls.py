@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import home, csrf_token, UserDetailsView, LoginView, SignupView, LogoutView
+from .views import csrf_token, UserDetailsView, LoginView, SignupView, LogoutView
 
 from rest_framework.routers import DefaultRouter
 from app.views import TaskViewSet, GoalViewSet,DSAAIResponseViewSet, SoftwareDevAIResponseViewSet, SystemDesignAIResponseViewSet, JobSearchAIResponseViewSet
@@ -15,7 +15,6 @@ router.register(r'job-search-ai-responses', JobSearchAIResponseViewSet, basename
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('', home, name = 'home'),
 
     path('api/me/', UserDetailsView.as_view(), name='user-details'),
 
