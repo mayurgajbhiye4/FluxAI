@@ -155,7 +155,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const addTask = async (title: string, category: Task['category']) => {
-    await getCSRFToken(); // Ensure CSRF cookie is set before POST
+    const csrfToken = await getCSRFToken();
     const newTask: Task = {
       id: uuidv4(),
       title,
@@ -187,7 +187,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         progress: 0
       }),
       credentials: 'include'
-    });
+    }, csrfToken);
 
     if (!response.ok) {
       throw new Error('Failed to save task to the server');
@@ -226,7 +226,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
   
 const toggleTask = async (id: string) => {
-  await getCSRFToken(); // Ensure CSRF cookie is set before PATCH
+  const csrfToken = await getCSRFToken();
   // Find the task that is being toggled
   const taskToToggle = tasks.find(task => task.id === id);
   
@@ -253,7 +253,7 @@ const toggleTask = async (id: string) => {
         completed: newCompleted
       }),
       credentials: 'include'
-    });
+    }, csrfToken);
 
     if (!response.ok) {
       throw new Error('Failed to update task');
@@ -346,7 +346,7 @@ const toggleTask = async (id: string) => {
 };
 
 const editTask = async (id: string, newTitle: string) => {
-  await getCSRFToken(); // Ensure CSRF cookie is set before PATCH
+  const csrfToken = await getCSRFToken();
   // Find the original task
   const originalTask = tasks.find(task => task.id === id);
   
@@ -374,7 +374,7 @@ const editTask = async (id: string, newTitle: string) => {
         updated_at: new Date()
       }),
       credentials: 'include'
-    });
+    }, csrfToken);
     
     if (!response.ok) {
       throw new Error('Failed to update task on the server');
@@ -403,7 +403,7 @@ const editTask = async (id: string, newTitle: string) => {
 };
 
 const deleteTask = async (id: string) => {
-  await getCSRFToken(); // Ensure CSRF cookie is set before DELETE
+  const csrfToken = await getCSRFToken();
   // Find the task being deleted
   const taskToDelete = tasks.find(task => task.id === id);
   
@@ -417,7 +417,7 @@ const deleteTask = async (id: string) => {
     const response = await fetchWithCSRF(`tasks/${id}/`, {
       method: 'DELETE',
       credentials: 'include'
-    });
+    }, csrfToken);
     
     if (!response.ok) {
       throw new Error('Failed to delete task on the server');

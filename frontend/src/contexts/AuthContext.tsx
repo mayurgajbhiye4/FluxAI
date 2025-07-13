@@ -58,10 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
+      const csrfToken = await getCSRFToken();
       const response = await fetchWithCSRF('login/', {
         method: 'POST',
         body: JSON.stringify({ email: email.trim().toLowerCase(), password: password }),
-      });
+      }, csrfToken);
 
       if (!response.ok) {
       const errorData = await response.json();
@@ -86,10 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, username: string, password: string, confirm_password: string) => {
     setLoading(true);
     try {
+      const csrfToken = await getCSRFToken();
       const response = await fetchWithCSRF('signup/', {
         method: 'POST',
         body: JSON.stringify({ email, username, password, confirm_password }),
-      });
+      }, csrfToken);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -112,10 +114,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     setLoading(true);
     try {
-      await getCSRFToken(); // Ensure CSRF cookie is set before POST
+      const csrfToken = await getCSRFToken();
       await fetchWithCSRF('logout/', {
         method: 'POST',
-      });
+      }, csrfToken);
       setUser(null);
       navigate('/signin');
     } finally {

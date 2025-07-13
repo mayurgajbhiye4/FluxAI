@@ -135,9 +135,9 @@ export function GoalProvider({ children }) {
 
   // Create or update a goal
   const updateGoal = async (category: string, dailyTarget: number) => {
-    await getCSRFToken(); // Ensure CSRF cookie is set before PATCH/POST
     if (!user) return false;
-    
+    const csrfToken = await getCSRFToken();
+
     try {
       // Check if goal exists for this category
       const existingGoal = goals[category];
@@ -147,27 +147,18 @@ export function GoalProvider({ children }) {
         // Update existing goal
         response = await fetchWithCSRF(`goals/${existingGoal.id}/`, {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            daily_target: dailyTarget
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ daily_target: dailyTarget }),
           credentials: 'include'
-        });
+        }, csrfToken);
       } else {
         // Create new goal
         response = await fetchWithCSRF('goals/', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            category, 
-            daily_target: dailyTarget
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category, daily_target: dailyTarget }),
           credentials: 'include'
-        });
+        }, csrfToken);
       }
       
       if (!response.ok) {
@@ -213,18 +204,16 @@ export function GoalProvider({ children }) {
   };
 
   const addProgress = async (goalId: number, amount: number = 1): Promise<boolean> => {
-    await getCSRFToken(); // Ensure CSRF cookie is set before POST
     if (!user) return false;
+    const csrfToken = await getCSRFToken();
 
     try {
       const response = await fetchWithCSRF(`goals/${goalId}/add_progress/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount }),
         credentials: 'include'
-      });
+      }, csrfToken);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -282,18 +271,16 @@ export function GoalProvider({ children }) {
   };
 
   const subtractProgress = async (goalId: number, amount: number = 1): Promise<boolean> => {
-    await getCSRFToken(); // Ensure CSRF cookie is set before POST
     if (!user) return false;
+    const csrfToken = await getCSRFToken();
 
     try {
       const response = await fetchWithCSRF(`goals/${goalId}/subtract_progress/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount }),
         credentials: 'include'
-      });
+      }, csrfToken);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -348,17 +335,15 @@ export function GoalProvider({ children }) {
 
   // Mark daily goal as completed
   const markDailyGoalCompleted = async (goalId: number): Promise<boolean> => {
-      await getCSRFToken(); // Ensure CSRF cookie is set before POST
       if (!user) return false;
+      const csrfToken = await getCSRFToken();
   
       try {
         const response = await fetchWithCSRF(`goals/${goalId}/mark_daily_goal_completed/`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include'
-        });
+        }, csrfToken);
   
         if (!response.ok) {
           const errorData = await response.json();

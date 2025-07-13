@@ -9,14 +9,15 @@ export function getCsrfToken(): string {
 // Wrapper for apiFetch that injects CSRF token into headers
 export async function fetchWithCSRF(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  csrfToken?: string
 ) {
   return apiFetch(endpoint, {
     ...options,
     credentials: 'include',
     headers: {
       ...options.headers,
-      'X-CSRFToken': getCsrfToken(),
+      'X-CSRFToken': csrfToken || '',
       'Content-Type': 'application/json',
     },
   });
@@ -24,22 +25,7 @@ export async function fetchWithCSRF(
 
 // Async CSRF token getter for use in pages (returns Promise<string>)
 export async function getCSRFToken(): Promise<string> {
-  // Try cookie first
-  const name = 'csrftoken';
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  if (cookieValue) return cookieValue;
-
-  // Fallback: fetch from backend
+  // Always fetch from backend
   const response = await apiFetch('csrf_token/', {
     method: 'GET',
     credentials: 'include',
