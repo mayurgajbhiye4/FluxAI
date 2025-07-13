@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && npx cpx2 static.json dist/",
+    "build:prod": "vite build --mode production && npx cpx2 static.json dist/",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -76,7 +77,7 @@
     "autoprefixer": "^10.4.21",
     "cpx2": "^8.0.0",
     "eslint": "^9.9.0",
-    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
     "lovable-tagger": "^1.1.7",
