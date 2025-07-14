@@ -30,7 +30,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     "api.fluxai.sbs",
-    "app.fluxai.sbs",
+    "fluxai.sbs",
     "fluxai.sbs",
     "localhost",
     "127.0.0.1"
@@ -170,7 +170,7 @@ else:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    "https://app.fluxai.sbs"
+    "https://fluxai.sbs"
 ]       
 
 SESSION_COOKIE_AGE = 1209600
@@ -181,7 +181,7 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://app.fluxai.sbs"
+    "https://fluxai.sbs"
 ] 
 CSRF_COOKIE_DOMAIN = ".fluxai.sbs"
 CSRF_COOKIE_SAMESITE = 'Lax' 
