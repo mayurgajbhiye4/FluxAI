@@ -15,22 +15,22 @@ import { apiFetch } from '@/lib/api';
 const CATEGORY_MAP = {
   dsa: {
     label: 'DSA',
-    endpoint: '/api/dsa-ai-responses/',
+    endpoint: 'dsa-ai-responses/',
     color: 'border-category-dsa text-category-dsa bg-category-dsa/5',
   },
   development: {
     label: 'Development',
-    endpoint: '/api/software-dev-ai-responses/',
+    endpoint: 'software-dev-ai-responses/',
     color: 'border-category-development text-category-development bg-category-development/5',
   },
   system_design: {
     label: 'System Design',
-    endpoint: '/api/system-design-ai-responses/',
+    endpoint: 'system-design-ai-responses/',
     color: 'border-category-systemDesign text-category-systemDesign bg-category-systemDesign/5',
   },
   job_search: {
     label: 'Job Search',
-    endpoint: '/api/job-search-ai-responses/',
+    endpoint: 'job-search-ai-responses/',
     color: 'border-category-jobSearch text-category-jobSearch bg-category-jobSearch/5',
   },
 };
