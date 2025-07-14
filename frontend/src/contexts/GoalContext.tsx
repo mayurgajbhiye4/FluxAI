@@ -70,12 +70,6 @@ export function GoalProvider({ children }) {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Ensure CSRF cookie is set on app load
-  useEffect(() => {
-    getCSRFToken().catch((err) => {
-      console.error('Failed to initialize CSRF token:', err);
-    });
-  }, []);
 
   // Fetch goals from backend API
   const fetchGoals = async () => {
