@@ -29,8 +29,9 @@ SECRET_KEY = config('DJANGO_SECRET_KEY')
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    "fluxai-frontend.onrender.com",
-    "fluxai-2oe4.onrender.com",
+    "api.fluxai.sbs",
+    "app.fluxai.sbs",
+    "fluxai.sbs",
     "localhost",
     "127.0.0.1"
 ]
@@ -169,18 +170,21 @@ else:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    "https://fluxai-frontend.onrender.com",
-    "https://fluxai-2oe4.onrender.com",
+    "https://app.fluxai.sbs"
 ]       
 
 SESSION_COOKIE_AGE = 1209600
 
-SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_DOMAIN = ".fluxai.sbs"
+SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = True
-
 SESSION_COOKIE_HTTPONLY = True
-    
-CSRF_COOKIE_SAMESITE = 'None' 
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://app.fluxai.sbs"
+] 
+CSRF_COOKIE_DOMAIN = ".fluxai.sbs"
+CSRF_COOKIE_SAMESITE = 'Lax' 
 CSRF_COOKIE_SECURE = True
 
 CORS_ALLOW_CREDENTIALS = True
@@ -188,6 +192,4 @@ CORS_ALLOW_CREDENTIALS = True
 GEMINI_API_KEY = config("GEMINI_API_KEY")
 GEMINI_MODEL_NAME = 'gemini-2.0-flash'
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://fluxai-frontend.onrender.com",
-]
+  
