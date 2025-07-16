@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { Task } from '@/components/ui-custom/TaskItem';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext'
-import Development from '@/pages/Development';
 import { useGoalContext } from '@/contexts/GoalContext';
 import { apiFetch } from '@/lib/api';
 import { fetchWithCSRF, getCSRFToken } from '@/lib/csrf';

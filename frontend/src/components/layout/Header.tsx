@@ -3,6 +3,9 @@ import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Code, BookOpen, Server, Briefcase, Bot } from 'lucide-react';
 import UserProfile from '@/components/ui-custom/UserProfile';
+import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -64,41 +67,74 @@ const Header = () => {
             Flux
             <span className="text-primary-500 dark:text-blue-400">AI</span>
           </NavLink>
-          
-          <div className="flex items-center">
-          <nav className="flex items-center space-x-1 md:space-x-2">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) => `
-                  relative px-3 py-2 rounded-lg text-sm font-medium transition-all
-                  ${isActive 
-                      ? 'text-blue-600 dark:text-blue-400'  
-                      : 'text-foreground/70 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'}
-                  `}
-              >
-                {({ isActive }) => (
-                  <div className="flex items-center">
-                    {item.icon}
-                    <span>{item.label}</span>
-                    {isActive && (
-                      <motion.div
-                        layoutId="active-nav-item"
-                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-blue-500 dark:bg-blue-400 rounded-full"
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                      />
+          {/* Desktop Nav */}
+          {!isMobile && (
+            <div className="flex items-center">
+              <nav className="flex items-center space-x-1 md:space-x-2">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) => `
+                      relative px-3 py-2 rounded-lg text-sm font-medium transition-all
+                      ${isActive 
+                          ? 'text-blue-600 dark:text-blue-400'  
+                          : 'text-foreground/70 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'}
+                      `}
+                  >
+                    {({ isActive }) => (
+                      <div className="flex items-center">
+                        {item.icon}
+                        <span>{item.label}</span>
+                        {isActive && (
+                          <motion.div
+                            layoutId="active-nav-item"
+                            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-blue-500 dark:bg-blue-400 rounded-full"
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                          />
+                        )}
+                      </div>
                     )}
+                  </NavLink>
+                ))}
+              </nav>
+              <UserProfile/>
+            </div>
+          )}
+          {/* Mobile Nav */}
+          {isMobile && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open menu">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <nav className="flex flex-col gap-2 p-6">
+                  {navItems.map((item) => (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      className={({ isActive }) => `
+                        flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-all
+                        ${isActive 
+                            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'  
+                            : 'text-foreground/80 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'}
+                        `}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </NavLink>
+                  ))}
+                  <div className="mt-4">
+                    <UserProfile/>
                   </div>
-                )}
-              </NavLink>
-            ))}
-          </nav>
-
-          <UserProfile/>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
-    </div>
     </header>
   );
 };
