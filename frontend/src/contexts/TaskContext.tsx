@@ -264,7 +264,7 @@ const toggleTask = async (id: string) => {
           const categoryGoal = goals.find((goal: any) => goal.category === taskToToggle.category);
           
           if (categoryGoal) {
-            const goalResponse = await apiFetch(`goals/${categoryGoal.id}/add_progress/`, {
+            const goalResponse = await fetchWithCSRF(`goals/${categoryGoal.id}/add_progress/`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -273,7 +273,7 @@ const toggleTask = async (id: string) => {
                 amount: 1
               }),
               credentials: 'include'
-            });
+            }, csrfToken);
 
             if (!goalResponse.ok) {
               console.error('Failed to update goal progress');
@@ -298,7 +298,7 @@ const toggleTask = async (id: string) => {
           const categoryGoal = goals.find((goal: any) => goal.category === taskToToggle.category);
           
           if (categoryGoal) {
-            const goalResponse = await apiFetch(`goals/${categoryGoal.id}/subtract_progress/`, {
+            const goalResponse = await fetchWithCSRF(`goals/${categoryGoal.id}/subtract_progress/`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -307,7 +307,7 @@ const toggleTask = async (id: string) => {
                 amount: 1
               }),
               credentials: 'include'
-            });
+            }, csrfToken);
 
             if (!goalResponse.ok) {
               console.error('Failed to subtract goal progress');
