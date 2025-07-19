@@ -529,7 +529,7 @@ const Assistant = () => {
                   <CardTitle className="text-lg">AI Response Details</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">Select a response from the list to view its details here.</p>
+                  <p className="text-muted-foreground break-words whitespace-pre-line">Select a response from the list to view its details here.</p>
                   <p className="mt-2 text-xs text-gray-400">You can download, regenerate, or delete a response after selecting it.</p>
                 </CardContent>
               </Card>
