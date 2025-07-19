@@ -479,20 +479,20 @@ const Assistant = () => {
                   </CardHeader>
                   <CardContent className="flex-1 min-h-0 p-4">
                     <ScrollArea className="h-full w-full">
-                      <div className="overflow-y-auto h-full text-sm prose prose-sm pr-2 break-words whitespace-pre-line scrollbar-fade">
+                      <div className="overflow-y-auto h-full text-sm prose prose-sm pr-2 break-words break-all whitespace-pre-line scrollbar-fade">
                         <ReactMarkdown
                           components={{
                             code: ({ className, children, ...props }: any) => {
                               const match = /language-(\w+)/.exec(className || '');
                               const isInline = !match;
                               return !isInline ? (
-                                <pre className="ai-code-block p-3 rounded-md overflow-x-auto border border-primary/20 bg-muted/50">
-                                  <code className={className} {...props}>
+                                <pre className="ai-code-block p-3 rounded-md overflow-x-auto border border-primary/20 bg-muted/50 break-words break-all">
+                                  <code className={className + " break-words break-all"} {...props}>
                                     {children}
                                   </code>
                                 </pre>
                               ) : (
-                                <code className="bg-muted px-1 py-0.5 rounded text-xs" {...props}>
+                                <code className="bg-muted px-1 py-0.5 rounded text-xs break-words break-all" {...props}>
                                   {children}
                                 </code>
                               );
