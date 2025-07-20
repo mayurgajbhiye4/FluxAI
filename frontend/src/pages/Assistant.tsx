@@ -479,54 +479,37 @@ const Assistant = () => {
                   </CardHeader>
                   <CardContent className="flex-1 min-h-0 p-4">
                     <ScrollArea className="h-full w-full max-w-full">
-                      <div className="overflow-y-auto h-full text-sm pr-2 break-words break-all whitespace-pre-line max-w-full scrollbar-fade">
+                      <div className="overflow-y-auto h-full text-sm pr-2 max-w-full scrollbar-fade">
                         <ReactMarkdown
                           components={{
                             code: ({ className, children, ...props }: any) => {
                               const match = /language-(\w+)/.exec(className || '');
                               const isInline = !match;
                               return !isInline ? (
-                                <pre
-                                  className="ai-code-block p-3 rounded-md border border-primary/20 bg-muted/50 break-words break-all m-0 mt-2 mb-2"
-                                  style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap', margin: 0 }}
-                                >
-                                  <code
-                                    className={className + " break-words break-all"}
-                                    style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}
-                                    {...props}
-                                  >
+                                <pre className="ai-code-block p-3 rounded-md overflow-x-auto">
+                                  <code className={className} {...props}>
                                     {children}
                                   </code>
                                 </pre>
                               ) : (
-                                <code
-                                  className="bg-muted px-1 py-0.5 rounded text-xs break-words break-all"
-                                  style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}
-                                  {...props}
-                                >
+                                <code className="bg-muted px-1 py-0.5 rounded text-xs" {...props}>
                                   {children}
                                 </code>
                               );
                             },
                             pre: ({ children }: any) => (
-                              <pre
-                                className="bg-muted p-3 rounded-md m-0 mt-2 mb-2"
-                                style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap', margin: 0 }}
-                              >
+                              <pre className="bg-muted p-3 rounded-md overflow-x-auto whitespace-pre-wrap">
                                 {children}
                               </pre>
                             ),
                             h1: ({ children }: any) => (
-                              <h1 className="text-xl font-bold mt-2 mb-2 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h1>
+                              <h1 className="text-xl font-bold mt-6 mb-3 first:mt-0">{children}</h1>
                             ),
                             h2: ({ children }: any) => (
-                              <h2 className="text-lg font-bold mt-2 mb-2 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h2>
+                              <h2 className="text-lg font-bold mt-5 mb-2 first:mt-0">{children}</h2>
                             ),
                             h3: ({ children }: any) => (
-                              <h3 className="text-base font-bold mt-2 mb-2 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h3>
-                            ),
-                            p: ({ children }: any) => (
-                              <p className="m-0 leading-tight" style={{ margin: 0 }}>{children}</p>
+                              <h3 className="text-base font-bold mt-4 mb-2 first:mt-0">{children}</h3>
                             ),
                             strong: ({ children }: any) => (
                               <strong className="font-bold">{children}</strong>
