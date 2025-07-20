@@ -375,7 +375,7 @@ const Assistant = () => {
                                     const match = /language-(\w+)/.exec(className || '');
                                     const isInline = !match;
                                     return !isInline ? (
-                                      <pre className="ai-code-block p-1 rounded-md overflow-x-auto border border-primary/10 bg-muted/30">
+                                      <pre className="ai-code-block p-1 rounded-md overflow-x-auto border border-primary/10 bg-muted/30 m-0 mt-1 mb-1" style={{ margin: 0 }}>
                                         <code className={className} {...props}>
                                           {children}
                                         </code>
@@ -387,18 +387,18 @@ const Assistant = () => {
                                     );
                                   },
                                   pre: ({ children }: any) => (
-                                    <pre className="bg-muted p-1 rounded-md overflow-x-auto whitespace-pre-wrap">
+                                    <pre className="bg-muted p-1 rounded-md overflow-x-auto whitespace-pre-wrap m-0 mt-1 mb-1" style={{ margin: 0 }}>
                                       {children}
                                     </pre>
                                   ),
                                   h1: ({ children }: any) => (
-                                    <h1 className="text-base font-bold mt-2 mb-1 first:mt-0">{children}</h1>
+                                    <h1 className="text-base font-bold mt-1 mb-1 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h1>
                                   ),
                                   h2: ({ children }: any) => (
-                                    <h2 className="text-sm font-bold mt-2 mb-1 first:mt-0">{children}</h2>
+                                    <h2 className="text-sm font-bold mt-1 mb-1 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h2>
                                   ),
                                   h3: ({ children }: any) => (
-                                    <h3 className="text-xs font-bold mt-1 mb-1 first:mt-0">{children}</h3>
+                                    <h3 className="text-xs font-bold mt-1 mb-1 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h3>
                                   ),
                                   strong: ({ children }: any) => (
                                     <strong className="font-bold">{children}</strong>
@@ -487,8 +487,8 @@ const Assistant = () => {
                               const isInline = !match;
                               return !isInline ? (
                                 <pre
-                                  className="ai-code-block p-3 rounded-md border border-primary/20 bg-muted/50 break-words break-all"
-                                  style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}
+                                  className="ai-code-block p-3 rounded-md border border-primary/20 bg-muted/50 break-words break-all m-0 mt-2 mb-2"
+                                  style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap', margin: 0 }}
                                 >
                                   <code
                                     className={className + " break-words break-all"}
@@ -510,20 +510,23 @@ const Assistant = () => {
                             },
                             pre: ({ children }: any) => (
                               <pre
-                                className="bg-muted p-3 rounded-md"
-                                style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}
+                                className="bg-muted p-3 rounded-md m-0 mt-2 mb-2"
+                                style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap', margin: 0 }}
                               >
                                 {children}
                               </pre>
                             ),
                             h1: ({ children }: any) => (
-                              <h1 className="text-xl font-bold mt-6 mb-3 first:mt-0">{children}</h1>
+                              <h1 className="text-xl font-bold mt-2 mb-2 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h1>
                             ),
                             h2: ({ children }: any) => (
-                              <h2 className="text-lg font-bold mt-5 mb-2 first:mt-0">{children}</h2>
+                              <h2 className="text-lg font-bold mt-2 mb-2 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h2>
                             ),
                             h3: ({ children }: any) => (
-                              <h3 className="text-base font-bold mt-4 mb-2 first:mt-0">{children}</h3>
+                              <h3 className="text-base font-bold mt-2 mb-2 first:mt-0" style={{ marginTop: 0, marginBottom: 0 }}>{children}</h3>
+                            ),
+                            p: ({ children }: any) => (
+                              <p className="m-0 leading-tight" style={{ margin: 0 }}>{children}</p>
                             ),
                             strong: ({ children }: any) => (
                               <strong className="font-bold">{children}</strong>
