@@ -363,13 +363,6 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Structure your response with clear sections\n"
                 "- Keep formatting simple and clean\n\n"
-                "Structure your response with these sections:\n"
-                "1. ## Problem Understanding\n"
-                "2. ## Approach and Intuition\n"
-                "3. ## Solution(s) - start with brute force if applicable, then optimized\n"
-                "4. ## Complexity Analysis\n"
-                "5. ## Pattern Recognition\n"
-                "6. ## Real-world Applications (if applicable)\n\n"
                 f"Question: {question}"
             )
             # Call Gemini API (replace with your actual call)
@@ -487,13 +480,6 @@ class DSAAIResponseViewSet(viewsets.ModelViewSet):
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Structure your response with clear sections\n"
                 "- Keep formatting simple and clean\n\n"
-                "Structure your response with these sections:\n"
-                "1. ## Problem Understanding\n"
-                "2. ## Approach and Intuition\n"
-                "3. ## Solution(s) - start with brute force if applicable, then optimized\n"
-                "4. ## Complexity Analysis\n"
-                "5. ## Pattern Recognition\n"
-                "6. ## Real-world Applications (if applicable)\n\n"
                 f"Question: {instance.question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
@@ -581,15 +567,6 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Include best practices and explanations where appropriate\n\n"
-                "Structure your response with these sections:\n"
-                "1. ## Problem Analysis\n"
-                "2. ## Solution Architecture\n"
-                "3. ## Implementation\n"
-                "4. ## Best Practices & Design Patterns\n"
-                "5. ## Error Handling & Edge Cases\n"
-                "6. ## Testing Strategy\n"
-                "7. ## Security Considerations\n"
-                "8. ## Performance & Scalability\n\n"
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
@@ -706,15 +683,6 @@ class SoftwareDevAIResponseViewSet(viewsets.ModelViewSet):
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Include best practices and explanations where appropriate\n\n"
-                "Structure your response with these sections:\n"
-                "1. ## Problem Analysis\n"
-                "2. ## Solution Architecture\n"
-                "3. ## Implementation\n"
-                "4. ## Best Practices & Design Patterns\n"
-                "5. ## Error Handling & Edge Cases\n"
-                "6. ## Testing Strategy\n"
-                "7. ## Security Considerations\n"
-                "8. ## Performance & Scalability\n\n"
                 f"Question: {instance.question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
@@ -799,16 +767,6 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Include diagrams or visual aids where appropriate\n\n"
-                "Structure your response with these sections:\n"
-                "1. ## Requirements Analysis\n"
-                "2. ## System Constraints & Scale Estimation\n"
-                "3. ## High-Level Architecture\n"
-                "4. ## Database Design\n"
-                "5. ## API Design\n"
-                "6. ## Scalability & Performance\n"
-                "7. ## Reliability & Fault Tolerance\n"
-                "8. ## Technology Stack & Trade-offs\n"
-                "9. ## Monitoring & Observability\n\n"
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
@@ -919,16 +877,6 @@ class SystemDesignAIResponseViewSet(viewsets.ModelViewSet):
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Include diagrams or visual aids where appropriate\n\n"
-                "Structure your response with these sections:\n"
-                "1. ## Requirements Analysis\n"
-                "2. ## System Constraints & Scale Estimation\n"
-                "3. ## High-Level Architecture\n"
-                "4. ## Database Design\n"
-                "5. ## API Design\n"
-                "6. ## Scalability & Performance\n"
-                "7. ## Reliability & Fault Tolerance\n"
-                "8. ## Technology Stack & Trade-offs\n"
-                "9. ## Monitoring & Observability\n\n"
                 f"Question: {instance.question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
@@ -1013,14 +961,6 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Include tips, resources, and best practices where appropriate\n\n"
-                "Structure your response with these sections:\n"
-                "1. ## Situation Analysis\n"
-                "2. ## Strategic Approach\n"
-                "3. ## Action Plan\n"
-                "4. ## Key Resources & Tools\n"
-                "5. ## Timeline & Milestones\n"
-                "6. ## Common Pitfalls to Avoid\n"
-                "7. ## Success Metrics\n\n"
                 f"Question: {question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
@@ -1131,14 +1071,6 @@ class JobSearchAIResponseViewSet(viewsets.ModelViewSet):
                 "- Add proper paragraph spacing\n"
                 "- Do NOT use asterisks (*) anywhere in your response\n"
                 "- Include tips, resources, and best practices where appropriate\n\n"
-                "Structure your response with these sections:\n"
-                "1. ## Situation Analysis\n"
-                "2. ## Strategic Approach\n"
-                "3. ## Action Plan\n"
-                "4. ## Key Resources & Tools\n"
-                "5. ## Timeline & Milestones\n"
-                "6. ## Common Pitfalls to Avoid\n"
-                "7. ## Success Metrics\n\n"
                 f"Question: {instance.question}"
             )
             model = genai.GenerativeModel(settings.GEMINI_MODEL_NAME)
