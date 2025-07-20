@@ -54,10 +54,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [tasks, setTasks] = useState<Task[]>([]);
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { fetchGoals } = useGoalContext();
+  const { fetchGoals, goals, addProgress, subtractProgress, getGoal } = useGoalContext();
 
 
   // Fetch current user info
@@ -219,119 +218,44 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
 const toggleTask = async (id: string) => {
   const csrfToken = await getCSRFToken();
-  // Find the task that is being toggled
   const taskToToggle = tasks.find(task => task.id === id);
-  
   if (!taskToToggle) return;
-  
-  // Create the new state
+
   const newCompleted = !taskToToggle.completed;
-  
-  // Update local state immediately for responsive UI
-  setTasks(prev => 
-    prev.map(task => 
-      task.id === id ? { ...task, completed: newCompleted } : task
-    )
-  );
-  
+  setTasks(prev => prev.map(task => task.id === id ? { ...task, completed: newCompleted } : task));
+
+  // Optimistically update goal progress in UI (if you want, you can keep a local progress state in TaskContext)
+  // Otherwise, rely on addProgress/subtractProgress to update context state
+  const goal = getGoal(taskToToggle.category);
+  if (!goal || !goal.id) return;
+
   try {
-    // Make API call to update the task in the backend
+    // Update the task in the backend
     const response = await fetchWithCSRF(`tasks/${id}/`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        completed: newCompleted
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: newCompleted }),
       credentials: 'include'
     }, csrfToken);
+    if (!response.ok) throw new Error('Failed to update task');
 
-    if (!response.ok) {
-      throw new Error('Failed to update task');
-    }
-
-    // If task is being completed, update the goal progress
+    // Update goal progress in backend and context
+    let progressOk = false;
     if (newCompleted) {
-      try {
-        // First get the goal ID for this category
-        const goalsResponse = await apiFetch('goals/', {
-          credentials: 'include'
-        });
-        
-        if (goalsResponse.ok) {
-          const goals = await goalsResponse.json();
-          const categoryGoal = goals.find((goal: any) => goal.category === taskToToggle.category);
-          
-          if (categoryGoal) {
-            const goalResponse = await fetchWithCSRF(`goals/${categoryGoal.id}/add_progress/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                amount: 1
-              }),
-              credentials: 'include'
-            }, csrfToken);
-
-            if (!goalResponse.ok) {
-              console.error('Failed to update goal progress');
-            } else {
-              // After successful goal progress update, refresh the goals
-              await fetchGoals();
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error updating goal progress:', error);
-      }
+      progressOk = await addProgress(goal.id, 1);
     } else {
-      // If task is being uncompleted, subtract progress
-      try {
-        const goalsResponse = await apiFetch('goals/', {
-          credentials: 'include'
-        });
-        
-        if (goalsResponse.ok) {
-          const goals = await goalsResponse.json();
-          const categoryGoal = goals.find((goal: any) => goal.category === taskToToggle.category);
-          
-          if (categoryGoal) {
-            const goalResponse = await fetchWithCSRF(`goals/${categoryGoal.id}/subtract_progress/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                amount: 1
-              }),
-              credentials: 'include'
-            }, csrfToken);
-
-            if (!goalResponse.ok) {
-              console.error('Failed to subtract goal progress');
-            } else {
-              // After successful goal progress update, refresh the goals
-              await fetchGoals();
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error subtracting goal progress:', error);
-      }
+      progressOk = await subtractProgress(goal.id, 1);
     }
+    if (!progressOk) throw new Error('Failed to update goal progress');
+    // No fetchGoals() here; UI is already updated optimistically by context
   } catch (error) {
     // Revert the local state if the API call fails
-    setTasks(prev => 
-      prev.map(task => 
-        task.id === id ? { ...task, completed: !newCompleted } : task
-      )
-    );
-    
+    setTasks(prev => prev.map(task => task.id === id ? { ...task, completed: !newCompleted } : task));
+    // Optionally, call fetchGoals to re-sync
+    await fetchGoals();
     toast({
       title: 'Error',
-      description: 'Failed to update task',
+      description: 'Failed to update task or goal progress',
       variant: 'destructive'
     });
   }
