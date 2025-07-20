@@ -479,7 +479,7 @@ const Assistant = () => {
                   </CardHeader>
                   <CardContent className="flex-1 min-h-0 p-4">
                     <ScrollArea className="h-full w-full max-w-full">
-                      <div className="overflow-y-auto h-full text-sm pr-2 max-w-full scrollbar-fade break-words">
+                      <div className={`overflow-y-auto h-full text-sm pr-2 max-w-full scrollbar-fade ${category === 'development' ? 'break-all' : 'break-words'}`}>
                         <ReactMarkdown
                           components={{
                             code: ({ className, children, ...props }: any) => {
@@ -498,7 +498,7 @@ const Assistant = () => {
                               );
                             },
                             pre: ({ children }: any) => (
-                              <pre className="bg-muted p-3 rounded-md whitespace-pre-wrap break-words overflow-x-auto">
+                              <pre className="bg-muted p-3 rounded-md overflow-x-auto whitespace-pre-wrap break-words">
                                 {children}
                               </pre>
                             ),
