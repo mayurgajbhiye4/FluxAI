@@ -56,8 +56,8 @@ interface GoalContextType {
   fetchGoals: () => Promise<void>;
   updateGoal: (category: string, dailyTarget: number) => Promise<boolean>;
   markDailyGoalCompleted: (goalId: number) => Promise<boolean>;
-  addProgress: (goalId: number, amount?: number) => Promise<boolean>;
-  subtractProgress: (goalId: number, amount?: number) => Promise<boolean>;
+  addProgress: (goalId: number, amount?: number, taskTitle?: string) => Promise<boolean>;
+  subtractProgress: (goalId: number, amount?: number, taskTitle?: string) => Promise<boolean>;
   getGoal: (category: string) => Goal;
 }
 
@@ -197,7 +197,7 @@ export function GoalProvider({ children }) {
     }
   };
 
-  const addProgress = async (goalId: number, amount: number = 1): Promise<boolean> => {
+  const addProgress = async (goalId: number, amount: number = 1, taskTitle?: string): Promise<boolean> => {
     if (!user) return false;
     const csrfToken = await getCSRFToken();
 
@@ -238,7 +238,9 @@ export function GoalProvider({ children }) {
 
       toast({
         title: "Progress added!",
-        description: responseData.message,
+        description: taskTitle
+          ? `Marked \"${taskTitle}\" as complete.`
+          : responseData.message,
       });
 
       // If daily goal was just completed, show additional celebration
@@ -264,7 +266,7 @@ export function GoalProvider({ children }) {
     }
   };
 
-  const subtractProgress = async (goalId: number, amount: number = 1): Promise<boolean> => {
+  const subtractProgress = async (goalId: number, amount: number = 1, taskTitle?: string): Promise<boolean> => {
     if (!user) return false;
     const csrfToken = await getCSRFToken();
 
@@ -309,7 +311,9 @@ export function GoalProvider({ children }) {
 
       toast({
         title: "Progress updated",
-        description: responseData.message,
+        description: taskTitle
+          ? `Marked \"${taskTitle}\" as incomplete.`
+          : responseData.message,
       });
 
       return true;

@@ -242,9 +242,9 @@ const toggleTask = async (id: string) => {
     // Update goal progress in backend and context
     let progressOk = false;
     if (newCompleted) {
-      progressOk = await addProgress(goal.id, 1);
+      progressOk = await addProgress(goal.id, 1, taskToToggle.title);
     } else {
-      progressOk = await subtractProgress(goal.id, 1);
+      progressOk = await subtractProgress(goal.id, 1, taskToToggle.title);
     }
     if (!progressOk) throw new Error('Failed to update goal progress');
     // No fetchGoals() here; UI is already updated optimistically by context
