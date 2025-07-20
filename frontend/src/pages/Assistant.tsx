@@ -479,26 +479,26 @@ const Assistant = () => {
                   </CardHeader>
                   <CardContent className="flex-1 min-h-0 p-4">
                     <ScrollArea className="h-full w-full max-w-full">
-                      <div className="overflow-y-auto h-full text-sm pr-2 max-w-full scrollbar-fade">
+                      <div className="overflow-y-auto h-full text-sm pr-2 max-w-full scrollbar-fade break-words">
                         <ReactMarkdown
                           components={{
                             code: ({ className, children, ...props }: any) => {
                               const match = /language-(\w+)/.exec(className || '');
                               const isInline = !match;
                               return !isInline ? (
-                                <pre className="ai-code-block p-3 rounded-md overflow-x-auto">
-                                  <code className={className} {...props}>
+                                <pre className="ai-code-block p-3 rounded-md whitespace-pre-wrap break-words bg-muted overflow-x-auto">
+                                  <code className={(className ? className + ' ' : '') + 'break-words whitespace-pre-wrap'} {...props}>
                                     {children}
                                   </code>
                                 </pre>
                               ) : (
-                                <code className="bg-muted px-1 py-0.5 rounded text-xs" {...props}>
+                                <code className="bg-muted px-1 py-0.5 rounded text-xs break-words whitespace-pre-wrap" {...props}>
                                   {children}
                                 </code>
                               );
                             },
                             pre: ({ children }: any) => (
-                              <pre className="bg-muted p-3 rounded-md overflow-x-auto whitespace-pre-wrap">
+                              <pre className="bg-muted p-3 rounded-md whitespace-pre-wrap break-words overflow-x-auto">
                                 {children}
                               </pre>
                             ),
