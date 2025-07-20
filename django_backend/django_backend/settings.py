@@ -31,6 +31,7 @@ DEBUG = False
 ALLOWED_HOSTS = [
     "api.fluxai.sbs",
     "fluxai.sbs",
+    "fluxai.sbs",
     "localhost",
     "127.0.0.1"
 ]
